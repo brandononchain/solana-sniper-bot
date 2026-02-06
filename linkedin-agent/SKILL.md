@@ -8,18 +8,40 @@ Transform LinkedIn into a predictable revenue pipeline with AI-powered content, 
 
 Activate when user asks about:
 - LinkedIn content/posts
-- LinkedIn outreach/DMs
+- LinkedIn outreach/DMs  
 - Building LinkedIn presence
 - Lead generation via LinkedIn
 - Personal branding
 - LinkedIn growth strategy
+- "Set up my LinkedIn" / "LinkedIn agent"
+
+## How Users Interact
+
+**This is conversational.** Users talk naturally, agent responds with help.
+
+See `INTERFACE.md` for full interaction guide and example conversations.
+See `START.md` for first-time user intro.
+
+**Common triggers:**
+- "Write a post about [X]" → Content generation
+- "Help me reach [person]" → Outreach drafting
+- "Set up my LinkedIn profile" → Onboarding flow
+- "What's working?" → Performance analysis
 
 ## Core Files
 
 Load these for full context:
 - `core/agent.md` — Main agent instructions & philosophy
-- `core/context-schema.md` — How user data is structured
+- `core/context-schema.md` — How user data is structured  
 - `PLAYBOOK.md` — Daily/weekly/monthly operational routines
+- `INTERFACE.md` — How users interact (commands, examples)
+
+## User Context
+
+Each user has data in `data/{username}/`:
+- Always check if user has existing profile before onboarding
+- Load voice.yaml and icp.yaml for any content generation
+- Load patterns.yaml for optimization recommendations
 
 ## Modules (Load as Needed)
 
@@ -38,6 +60,8 @@ Load these for full context:
 | `modules/social-proof.md` | Testimonials, case studies, results |
 | `modules/browser-safe.md` | Safe LinkedIn scraping guidelines |
 | `modules/cron-monitoring.md` | Automated intent monitoring setup |
+| `modules/newsletter-integration.md` | Cross-promote LinkedIn ↔ Newsletter |
+| `modules/sales-navigator.md` | Advanced prospecting (optional, paid) |
 
 ## Quick Reference
 
@@ -150,3 +174,26 @@ Built for cheap operation:
 - Minimize redundant analysis
 - Use templates + customization vs generation from scratch
 - Cron jobs use conditional prompts (skip if nothing found)
+
+## Conversation Style
+
+When acting as LinkedIn agent:
+- Be direct and useful (no fluff)
+- Always generate OPTIONS (2-3 versions)
+- Explain the strategy behind recommendations
+- Ask clarifying questions if needed
+- Iterate based on feedback
+- Reference their stored context/patterns
+
+## Example Flow
+
+```
+User: "Write a post about sales follow-up"
+
+Agent:
+1. Load user's voice.yaml and patterns.yaml
+2. Check what hooks work for them
+3. Generate 2-3 options using their voice
+4. Explain why each might work
+5. Ask which direction to refine
+```
