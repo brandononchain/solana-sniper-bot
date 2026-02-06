@@ -1,0 +1,60 @@
+# Brandon's LinkedIn Profile
+
+name: "Brandon"
+handle: "brandononchain"
+linkedin_url: "https://www.linkedin.com/in/brandononchain"
+
+current_headline: "Founder | AI | Product Engineer | BD | Sales"
+# Problem: Generic, doesn't say what he does or who he helps
+
+websites:
+  - "https://github.com/brandononchain"
+  - "https://brandononchain.framer.website"
+  - "https://aoris.ai"
+  - "https://altalab.io"
+
+background:
+  family: "100-year family business legacy (passed on)"
+  car_sales: "Almost a decade while building AI/blockchain skills"
+  location: "Chicago"
+  self_taught: true
+  
+identity:
+  core: "AI Product Engineer"
+  obsessions:
+    - "Product and Flow"
+    - "Automated systems"
+    - "Design/UX"
+    - "Trading"
+  
+industries:
+  - AI
+  - Blockchain
+  - Crypto
+  - Fintech
+  - Quant
+  - Web3
+
+projects:
+  - name: "GoldX Quant Agent"
+    description: "AI-driven quant trading workflow on n8n"
+    tech: ["GPT-4.1", "n8n", "Telegram", "TopStepX"]
+    status: "live"
+  - name: "Aoris AI"
+    url: "https://aoris.ai"
+  - name: "Alta Lab"
+    url: "https://altalab.io"
+
+trading:
+  style: "Supply & demand, order flow, liquidity"
+  instruments: ["XAUUSD", "Gold futures", "Crypto"]
+  preference: "Asian session"
+  approach: "Fewer trades, higher conviction"
+
+stack:
+  ai: ["GPT-4", "n8n", "AI agents", "quant logic"]
+  blockchain: ["Web3", "XRP ecosystem"]
+  design: ["UX", "Framer"]
+  trading: ["Multi-timeframe analysis", "automated execution"]
+
+last_updated: "2025-02-06"

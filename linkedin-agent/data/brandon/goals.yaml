@@ -1,0 +1,56 @@
+# Brandon's LinkedIn Goals
+
+# Multi-purpose: audience + clients + opportunities
+
+objectives:
+  primary:
+    - "Build audience/credibility in AI + trading space"
+    - "Attract service clients (AI automation)"
+    - "Surface job/contract opportunities"
+  secondary:
+    - "Establish thought leadership in AI trading"
+    - "Connect with Web3/fintech ecosystem"
+    - "Document build-in-public journey"
+
+content_goals:
+  post_frequency: "3-4x/week"
+  content_mix:
+    technical_builds: 40%     # GoldX, AI systems, architecture
+    trading_insights: 25%     # Market analysis, trading philosophy
+    industry_takes: 20%       # AI, fintech, Web3 opinions
+    personal_journey: 15%     # Background, lessons, builds
+  
+  engagement_target: "2-4% engagement rate"
+  follower_growth: "Focus on quality over quantity"
+
+outreach_goals:
+  weekly_connections: "10-15 targeted"
+  weekly_dms: "5-10 warm outreach"
+  target_accounts:
+    - "Fintech founders"
+    - "Prop firm leadership"
+    - "AI startup founders"
+    - "Web3 builders"
+
+time_investment:
+  max_hours_weekly: 5
+  breakdown:
+    content_creation: "2 hours"
+    engagement: "1.5 hours"
+    outreach: "1 hour"
+    analysis: "0.5 hours"
+
+success_metrics:
+  leading:
+    - "Inbound DMs from ICP"
+    - "Profile views from target industries"
+    - "Content saves/shares"
+  lagging:
+    - "Service inquiries"
+    - "Job/contract opportunities"
+    - "Revenue from LinkedIn-sourced clients"
+
+current_baseline:
+  followers: null  # Need to get this
+  avg_engagement: "unknown"
+  inbound_inquiries: "low"

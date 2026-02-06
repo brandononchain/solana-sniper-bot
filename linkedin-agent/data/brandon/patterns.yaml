@@ -1,0 +1,99 @@
+# Brandon's Learned Patterns
+# Updated as we learn what works
+
+content_patterns:
+
+  hooks:
+    likely_winners:
+      # Based on voice analysis and industry patterns
+      - type: "technical_builds"
+        reason: "His strength - shows real work"
+        confidence: "high"
+      - type: "contrarian"
+        reason: "Matches his builder skepticism"
+        confidence: "high"
+      - type: "story"
+        reason: "Unique background (family business, car sales)"
+        confidence: "medium"
+        
+    likely_underperformers:
+      - type: "engagement_bait"
+        reason: "Already in his content, doesn't match authentic voice"
+        note: "Avoid 'please like/comment/share'"
+      - type: "generic_motivation"
+        reason: "Not his brand, too common"
+        
+  topics:
+    hot_for_brandon:
+      - "AI trading systems"
+      - "Automation workflows"
+      - "Trading insights (gold, Asian session)"
+      - "Build-in-public"
+      - "AI product engineering"
+      - "Unconventional career path"
+    cold:
+      - "Generic AI hype"
+      - "Motivational content"
+      - "LinkedIn meta content"
+      
+  content_types:
+    prioritize:
+      - "Technical breakdowns" # Show the work
+      - "Frameworks/systems" # Matches his brain
+      - "Story + lesson" # Unique background
+      - "Industry takes" # Has real opinions
+    deprioritize:
+      - "Engagement bait"
+      - "Generic tips"
+      - "Quote posts"
+      
+  formatting:
+    do:
+      - "Use line breaks"
+      - "Use bullet points for technical content"
+      - "Lead with strong hook"
+      - "End with insight, not ask"
+    avoid:
+      - "Excessive emojis"
+      - "Hashtag clusters"
+      - "Please like/comment/share"
+      - "Multiple CTAs"
+
+voice_refinements:
+  amplify:
+    - "Technical depth"
+    - "Builder credibility"
+    - "Trader mindset"
+    - "Systems thinking"
+  reduce:
+    - "Engagement begging"
+    - "LinkedIn-speak"
+    - "Emoji overuse"
+    
+positioning_notes:
+  unique_angles:
+    - "AI Product Engineer (not just AI, not just product)"
+    - "Actually builds and ships (not just talks)"
+    - "Trading + AI intersection"
+    - "Unconventional path (sales background)"
+    - "Systems over hustle philosophy"
+  differentiation:
+    - "Shows real architectures, not just theory"
+    - "Has live products (GoldX, Aoris, Alta Lab)"
+    - "Cross-domain (trading, AI, product, design)"
+
+outreach_patterns:
+  # To be updated as we test
+  templates_to_test:
+    - "value_first_automation"
+    - "builder_to_builder"
+  hypotheses:
+    - "Technical connection notes will outperform generic"
+    - "Resource offers will get higher response than questions"
+
+learned_insights: []
+# Add insights as we learn from performance
+# Format:
+# - date: "2025-02-06"
+#   insight: "What we learned"
+#   evidence: "How we know"

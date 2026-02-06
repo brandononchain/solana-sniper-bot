@@ -1,0 +1,91 @@
+# Brandon's Lead Magnet Ideas
+# Matched to his ICPs and expertise
+
+lead_magnets:
+
+  # For service business clients
+  - name: "The AI Automation Audit Checklist"
+    target_audience: "service_clients"
+    type: "checklist"
+    format: "PDF"
+    description: |
+      A self-assessment checklist for business owners to identify 
+      which processes in their business are ripe for AI automation.
+      Includes ROI calculator.
+    hook_for_post: "I use this checklist to find $50k+ in automation opportunities in every business I audit."
+    status: "idea"
+    priority: "high"
+
+  - name: "5 Workflows Every Service Business Should Automate"
+    target_audience: "service_clients"
+    type: "guide"
+    format: "PDF + Loom walkthrough"
+    description: |
+      Step-by-step breakdowns of the 5 highest-ROI automations 
+      for service businesses, with n8n templates.
+    status: "idea"
+    priority: "high"
+
+  # For traders
+  - name: "The AI Trading Agent Blueprint"
+    target_audience: "trading_fintech"
+    type: "framework"
+    format: "PDF + architecture diagram"
+    description: |
+      The exact architecture I used to build GoldX Quant.
+      Components, data flows, risk management layers.
+    hook_for_post: "The blueprint behind my 24/7 AI trading agent (free download)"
+    status: "idea"
+    priority: "high"
+
+  - name: "Asian Session Gold Playbook"
+    target_audience: "traders"
+    type: "guide"
+    format: "PDF"
+    description: |
+      My specific approach to trading gold during Asian session.
+      Setups, entries, risk management, examples.
+    status: "idea"
+    priority: "medium"
+
+  - name: "Multi-Timeframe Analysis Cheat Sheet"
+    target_audience: "traders"
+    type: "cheat_sheet"
+    format: "PDF (1-pager)"
+    description: |
+      Quick reference for how I use 5min, 15min, 30min, 1h, 4h, 1d 
+      timeframes together.
+    status: "idea"
+    priority: "medium"
+
+  # For AI/tech audience
+  - name: "The n8n Starter Kit for AI Workflows"
+    target_audience: "builders"
+    type: "template_pack"
+    format: "n8n JSON exports + guide"
+    description: |
+      5 ready-to-import n8n workflows for common AI use cases.
+      Includes setup instructions.
+    status: "idea"
+    priority: "medium"
+
+  - name: "AI Product Engineer Stack 2025"
+    target_audience: "builders"
+    type: "resource_list"
+    format: "Notion page or PDF"
+    description: |
+      Every tool, framework, and resource I use to build AI products.
+      With notes on what each is best for.
+    status: "idea"
+    priority: "medium"
+
+  # For Web3
+  - name: "Web3 UX Teardowns"
+    target_audience: "web3_crypto"
+    type: "analysis"
+    format: "PDF or carousel series"
+    description: |
+      Detailed UX breakdowns of top Web3 products.
+      What works, what doesn't, how to fix it.
+    status: "idea"
+    priority: "low"

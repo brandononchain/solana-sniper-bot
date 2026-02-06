@@ -1,0 +1,106 @@
+# Brandon's Voice DNA
+
+who_he_is: "AI Product Engineer who builds automated trading systems and AI products — comes from a sales background with a builder's obsession"
+
+what_he_believes:
+  - "Systems > hustle"
+  - "Automation creates edge"
+  - "Product + engineering + design should be unified"
+  - "Fewer trades, higher conviction"
+  - "Build in public, ship fast"
+
+how_he_shows_up: "Technical but accessible, builder energy, trader mindset, occasionally too LinkedIn-y (working on it)"
+
+tone:
+  primary: "technical-builder"
+  secondary: "trader-strategic"
+  energy: "high but grounded in substance"
+  formality: 4  # 1-10 scale, leans casual but can go technical
+  confidence: 8
+  warmth: 6
+
+mechanics:
+  sentence_length: "mixed — short punchy for emphasis, longer for technical explanation"
+  paragraph_style: "uses line breaks, likes structure"
+  uses_line_breaks: true
+  uses_lists: true
+  uses_emojis: true  # but should reduce
+  uses_headers: false
+
+vocabulary:
+  signature_phrases:
+    - "Here's a peek under the hood"
+    - "engineered from scratch"
+    - "institutional-grade"
+    - "data-driven edge"
+    - "Fewer trades. Higher conviction."
+  
+  power_words:
+    - "quant"
+    - "automated"
+    - "multi-timeframe"
+    - "order flow"
+    - "liquidity"
+    - "edge"
+    - "conviction"
+    - "system"
+    - "workflow"
+    
+  words_to_avoid:
+    - "Big news! 🚀" # too LinkedIn-y
+    - "please like, comment, share" # begging
+    - "Let's connect!" # generic
+    - "Excited to announce" # corporate
+    - "humbled" # cringe
+    - "leverage" (unless trading context)
+    - "synergy"
+    
+  jargon_comfort: "high — knows trading + AI + blockchain terminology deeply"
+
+style_markers:
+  uses_questions: true
+  uses_stories: sometimes
+  uses_data: true
+  uses_technical_depth: true  # THIS IS A STRENGTH
+  emoji_usage: "moderate — should reduce to minimal"
+  hashtag_usage: "sometimes — should reduce to none"
+  
+personality:
+  contrarian_level: "medium"
+  vulnerability_level: "low-medium"
+  builder_identity: "very high"
+  trader_identity: "high"
+
+strengths_to_amplify:
+  - Technical depth (quant, order flow, AI architecture)
+  - Builder credibility (actually ships things)
+  - Cross-domain knowledge (AI + trading + product + design)
+  - Real projects to reference
+
+weaknesses_to_fix:
+  - Too much "please engage" language
+  - Sometimes too long/dense
+  - Headline doesn't communicate value
+  - About section is a mess
+  - Needs clearer positioning
+
+voice_samples:
+  good:
+    - content: |
+        There's something uniquely strategic about the Asian session that keeps 
+        me coming back to it—especially when trading Gold Futures (GC). During 
+        these quieter market hours, I find that price action is cleaner, liquidity 
+        is thinner (but not erratic), and institutional footprints are more visible.
+      notes: "This is the real voice — thoughtful, technical, confident"
+      
+    - content: |
+        True multi-factor quant logic: Not just price action—this is macro, 
+        micro, and order flow in one
+      notes: "Punchy, technical, shows expertise"
+      
+  avoid:
+    - content: |
+        If you believe in my work, my approach to product, or just want to see 
+        more trader-focused innovation in this space—please like, comment, or 
+        share this post.
+      notes: "Begging for engagement — never do this"

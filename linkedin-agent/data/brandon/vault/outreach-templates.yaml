@@ -1,0 +1,132 @@
+# Brandon's Outreach Templates
+# Calibrated to his voice and ICPs
+
+connection_notes:
+
+  builder_to_builder:
+    template: |
+      {name} — saw you're building in {their_space}. 
+      I'm working on AI trading systems and automation. 
+      Would love to connect.
+    best_for: ["founders", "engineers", "builders"]
+    
+  trading_community:
+    template: |
+      {name} — your take on {specific_topic} resonated. 
+      I trade gold futures and build AI trading systems.
+      Let's connect.
+    best_for: ["traders", "quants", "fintech"]
+    
+  service_prospect:
+    template: |
+      {name} — noticed {company} is growing fast. 
+      I help service businesses automate ops with AI.
+      Would love to connect.
+    best_for: ["service_business_owners", "founders"]
+    
+  web3_connect:
+    template: |
+      {name} — {specific_observation_about_their_project}.
+      Building at the intersection of AI and Web3.
+      Let's connect.
+    best_for: ["web3_founders", "crypto"]
+
+first_messages:
+
+  value_first_automation:
+    template: |
+      Hey {name} — thanks for connecting.
+      
+      Saw you're running {company_type}. Quick question:
+      What's the most manual, repetitive process your team deals with?
+      
+      I've been building AI automation systems and always curious 
+      what founders are dealing with.
+    best_for: ["service_clients"]
+    goal: "Start conversation about their pain"
+    
+  value_first_trading:
+    template: |
+      {name} — appreciate the connection.
+      
+      Your {post/comment} about {topic} was interesting.
+      
+      I've been building AI agents for trading — specifically 
+      gold futures. Curious: what's your take on automation 
+      in {their_trading_area}?
+    best_for: ["traders", "fintech"]
+    goal: "Start conversation about trading + AI"
+    
+  resource_share:
+    template: |
+      Hey {name} — 
+      
+      I put together a {resource} on {topic} that might be useful 
+      given what you're working on.
+      
+      Want me to send it over? No pitch, just thought it'd help.
+    best_for: ["any"]
+    goal: "Provide value, start relationship"
+    
+  mutual_interest:
+    template: |
+      {name} — saw we're both into {shared_interest}.
+      
+      {Specific observation or question about their work}
+      
+      What's your current focus?
+    best_for: ["any"]
+    goal: "Find common ground"
+
+follow_ups:
+
+  day_3_no_response:
+    template: |
+      Hey {name} — circling back.
+      
+      Also wanted to share {new_value_add} in case it's useful.
+      
+      Either way, hope {their_project/goal} is going well.
+    
+  day_7_different_angle:
+    template: |
+      {name} — different thought.
+      
+      I noticed {new_observation_about_them}.
+      
+      {Related insight or question}
+      
+      Worth connecting on?
+    
+  breakup:
+    template: |
+      {name} — I'll assume timing isn't right, which is fine.
+      
+      If {automation/trading systems/AI products} ever becomes 
+      a priority, happy to reconnect.
+      
+      Best with {their_goal}.
+
+call_bridges:
+
+  soft:
+    template: |
+      This is great — feels like there's a lot of overlap here.
+      
+      Open to jumping on a quick call? No agenda, just would 
+      be good to connect properly.
+      
+  value_bridge:
+    template: |
+      I have some thoughts on {their_challenge} that are 
+      easier to explain live.
+      
+      Open to a 15-20 min chat this week?
+      
+  direct:
+    template: |
+      {name} — I think I might be able to help with {specific_thing}.
+      
+      Worth a quick call to see if there's a fit?
+      
+      No pressure either way.

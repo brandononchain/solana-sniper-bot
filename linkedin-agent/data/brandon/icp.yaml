@@ -1,0 +1,125 @@
+# Brandon's Ideal Customer Profiles (Multiple)
+
+# Brandon is hybrid — multiple audiences, multiple offers
+# Prioritize by what moves revenue/opportunity fastest
+
+primary_audiences:
+
+  # Audience 1: Service Buyers
+  service_clients:
+    priority: "high"
+    who:
+      titles:
+        - "Founder"
+        - "CEO"
+        - "COO"
+        - "Head of Operations"
+      company_type: "Service-based businesses, agencies, SMBs"
+      company_size: "5-100 employees"
+      industries:
+        - "Professional services"
+        - "Agencies"
+        - "Consulting firms"
+        - "Financial services"
+    pain_points:
+      - "Manual processes eating up time"
+      - "Can't scale without hiring more people"
+      - "Know they need AI but don't know where to start"
+      - "Tried AI tools but couldn't make them work"
+    buying_triggers:
+      - "Complaining about ops/manual work"
+      - "Asking about AI automation"
+      - "Hiring for ops roles (sign they need systems)"
+      - "Growing but margins shrinking"
+    offer: "AI systems and automation for business operations"
+    
+  # Audience 2: Trading/Fintech
+  trading_fintech:
+    priority: "high"
+    who:
+      titles:
+        - "Founder"
+        - "CTO"
+        - "Head of Product"
+        - "Quant"
+        - "Portfolio Manager"
+      company_type: "Prop firms, trading platforms, fintech startups, funds"
+      industries:
+        - "Prop trading"
+        - "Fintech"
+        - "Quant funds"
+        - "Crypto/DeFi"
+    pain_points:
+      - "Need AI/automation for trading workflows"
+      - "Want custom quant tools"
+      - "Building trading products"
+    buying_triggers:
+      - "Hiring for quant/AI roles"
+      - "Launching new trading products"
+      - "Talking about automation"
+    offer: "AI trading systems, quant products, trading automation"
+
+  # Audience 3: Web3/Crypto
+  web3_crypto:
+    priority: "medium"
+    who:
+      titles:
+        - "Founder"
+        - "CTO"
+        - "Product Lead"
+      company_type: "Web3 startups, DAOs, crypto projects"
+      industries:
+        - "Blockchain"
+        - "DeFi"
+        - "NFTs"
+        - "Web3 infrastructure"
+    pain_points:
+      - "Need product engineering"
+      - "Building user-facing products"
+      - "UX in crypto sucks"
+    buying_triggers:
+      - "Launching new product"
+      - "Hiring product roles"
+      - "Complaining about UX"
+    offer: "Product engineering, UX, AI integration for Web3"
+
+  # Audience 4: Employers
+  potential_employers:
+    priority: "medium"
+    who:
+      titles:
+        - "Hiring Manager"
+        - "Head of Product"
+        - "VP Engineering"
+        - "Founder"
+      company_type: "AI companies, fintech, trading firms, Web3"
+      looking_for:
+        - "AI Product Engineer"
+        - "Product Manager (trading/fintech)"
+        - "Technical PM"
+    what_they_want:
+      - "Someone who can ship"
+      - "Technical depth + product sense"
+      - "Experience with AI implementation"
+      - "Trading/fintech domain knowledge"
+    offer: "Full-time or contract roles (right opportunity)"
+
+  # Audience 5: Community/Audience
+  followers:
+    priority: "foundational"
+    who: "Traders, builders, AI enthusiasts, Web3 people"
+    what_they_want:
+      - "Learn about AI + trading"
+      - "See what's possible with automation"
+      - "Behind-the-scenes of building"
+    content_approach:
+      - "Build in public"
+      - "Technical breakdowns"
+      - "Trading insights"
+      - "AI system architecture"
+    offer: "Value through content (leads to all other audiences)"
+
+positioning_statement: |
+  I'm an AI Product Engineer who builds automated systems — 
+  from quant trading agents to business automation. 
+  I work at the intersection of AI, trading, and product design.

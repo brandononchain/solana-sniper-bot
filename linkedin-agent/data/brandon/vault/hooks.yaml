@@ -1,0 +1,364 @@
+# Brandon's Hook Vault
+# Calibrated to his voice: technical, builder, trader
+# Total: 75+ hooks across categories
+
+# STATUS: draft | ready | tested | winner | retired
+
+contrarian:
+  - hook: "Most 'AI automation' is just fancy Zapier. Here's what real automation looks like."
+    topic: "ai-automation"
+    status: "ready"
+    
+  - hook: "Traders don't need more indicators. They need better systems."
+    topic: "trading"
+    status: "ready"
+    
+  - hook: "The AI hype is real. The AI implementation is mostly garbage."
+    topic: "ai"
+    status: "ready"
+    
+  - hook: "Your trading strategy isn't the problem. Your execution system is."
+    topic: "trading"
+    status: "ready"
+    
+  - hook: "I spent 10 years in car sales. It taught me more about product than any PM course."
+    topic: "personal"
+    status: "ready"
+    
+  - hook: "Web3 has a product problem, not a technology problem."
+    topic: "web3"
+    status: "ready"
+    
+  - hook: "Stop learning new trading strategies. Start building trading systems."
+    topic: "trading"
+    status: "ready"
+    
+  - hook: "AI won't replace you. Someone using AI systems will."
+    topic: "ai"
+    status: "ready"
+    
+  - hook: "The best traders I know are the laziest. Here's why that matters."
+    topic: "trading"
+    status: "ready"
+    
+  - hook: "Everyone's building AI chatbots. Almost no one's building AI workflows."
+    topic: "ai"
+    status: "ready"
+    
+  - hook: "Prop firms don't want more traders. They want better systems."
+    topic: "trading"
+    status: "ready"
+    
+  - hook: "Manual processes are a tax on your business. Most companies pay it forever."
+    topic: "automation"
+    status: "ready"
+    
+  - hook: "The fintech industry is drowning in features and starving for product thinking."
+    topic: "fintech"
+    status: "ready"
+    
+  - hook: "Your CRM isn't broken. Your workflow is."
+    topic: "automation"
+    status: "ready"
+
+technical_builds:
+  - hook: "I built an AI trading agent that runs 24/7. Here's the architecture:"
+    topic: "goldx"
+    status: "ready"
+    
+  - hook: "Inside GoldX Quant: How I automated institutional-grade trade signals"
+    topic: "goldx"
+    status: "ready"
+    
+  - hook: "Multi-timeframe analysis + AI + automated execution. Let me show you how it works."
+    topic: "trading-ai"
+    status: "ready"
+    
+  - hook: "The n8n workflow that runs my entire trading operation:"
+    topic: "automation"
+    status: "ready"
+    
+  - hook: "I connected GPT-4 to my trading account. Here's what happened:"
+    topic: "ai-trading"
+    status: "ready"
+    
+  - hook: "Here's the exact prompt I use to generate quant-grade trade signals:"
+    topic: "ai-trading"
+    status: "ready"
+    
+  - hook: "I automated my entire trade journaling process. 15 minutes → 0 minutes."
+    topic: "automation"
+    status: "ready"
+    
+  - hook: "How I built a Telegram bot that sends me trade signals with charts:"
+    topic: "automation"
+    status: "ready"
+    
+  - hook: "The 5-node n8n workflow that replaced 3 hours of daily work:"
+    topic: "automation"
+    status: "ready"
+    
+  - hook: "Reverse-engineering institutional order flow with AI. Here's my approach:"
+    topic: "trading-ai"
+    status: "ready"
+    
+  - hook: "I built an AI agent that monitors macro news and adjusts my trading bias automatically."
+    topic: "ai-trading"
+    status: "ready"
+    
+  - hook: "My tech stack for building AI products in 2025:"
+    topic: "tech"
+    status: "ready"
+
+story:
+  - hook: "I walked away from a 100-year family business to build AI systems."
+    topic: "personal"
+    status: "ready"
+    
+  - hook: "10 years selling cars taught me one thing: systems beat hustle."
+    topic: "personal"
+    status: "ready"
+    
+  - hook: "Last month my AI agent made 47 trades while I slept."
+    topic: "goldx"
+    status: "ready"
+    
+  - hook: "I used to trade manually for 8 hours a day. Now I spend 30 minutes."
+    topic: "automation"
+    status: "ready"
+    
+  - hook: "My first AI automation saved a client 20 hours a week. They cried."
+    topic: "service"
+    status: "ready"
+    
+  - hook: "I blew up my first trading account. Then I built a system."
+    topic: "trading"
+    status: "ready"
+    
+  - hook: "From car dealership to AI Product Engineer. Here's what changed:"
+    topic: "personal"
+    status: "ready"
+    
+  - hook: "A year ago I couldn't code. Last week I shipped an AI trading agent."
+    topic: "personal"
+    status: "ready"
+    
+  - hook: "The trade that made me realize manual trading was dead:"
+    topic: "trading"
+    status: "ready"
+    
+  - hook: "I moved to Chicago with no network. LinkedIn became my dealership floor."
+    topic: "personal"
+    status: "ready"
+    
+  - hook: "My family thought I was crazy for leaving. Here's what they think now:"
+    topic: "personal"
+    status: "ready"
+
+trading_insight:
+  - hook: "Why I only trade the Asian session:"
+    topic: "trading"
+    status: "ready"
+    
+  - hook: "Liquidity sweeps explained in 60 seconds:"
+    topic: "trading"
+    status: "ready"
+    
+  - hook: "The order flow pattern that prints money in Gold futures:"
+    topic: "trading"
+    status: "ready"
+    
+  - hook: "Fewer trades. Higher conviction. Here's why:"
+    topic: "trading"
+    status: "ready"
+    
+  - hook: "The 3 things I check before every single trade:"
+    topic: "trading"
+    status: "ready"
+    
+  - hook: "Why Gold futures are the best instrument for AI trading systems:"
+    topic: "trading"
+    status: "ready"
+    
+  - hook: "Breaker blocks explained (and why most traders get them wrong):"
+    topic: "trading"
+    status: "ready"
+    
+  - hook: "The only 3 timeframes that matter for gold:"
+    topic: "trading"
+    status: "ready"
+    
+  - hook: "How I use Fibonacci retracements differently than everyone else:"
+    topic: "trading"
+    status: "ready"
+    
+  - hook: "Supply and demand trading is simple. Execution is hard. Here's why:"
+    topic: "trading"
+    status: "ready"
+    
+  - hook: "The Asian session setup I take every single week:"
+    topic: "trading"
+    status: "ready"
+
+frameworks:
+  - hook: "My 3-layer system for AI automation (steal this):"
+    topic: "ai-automation"
+    status: "ready"
+    
+  - hook: "The AI Product Engineer stack I use for everything:"
+    topic: "tech"
+    status: "ready"
+    
+  - hook: "How I evaluate any trading setup in 30 seconds:"
+    topic: "trading"
+    status: "ready"
+    
+  - hook: "The 4-step process I use to automate any business workflow:"
+    topic: "automation"
+    status: "ready"
+    
+  - hook: "My framework for deciding what to automate (and what not to):"
+    topic: "automation"
+    status: "ready"
+    
+  - hook: "The BUILD framework: How I ship AI products fast:"
+    topic: "product"
+    status: "ready"
+    
+  - hook: "5 questions I ask before building any AI system:"
+    topic: "ai"
+    status: "ready"
+    
+  - hook: "How I structure every n8n workflow for reliability:"
+    topic: "automation"
+    status: "ready"
+
+industry_takes:
+  - hook: "AI agents are overhyped. AI workflows are underrated."
+    topic: "ai"
+    status: "ready"
+    
+  - hook: "The fintech companies that will win in 2025 all have one thing in common:"
+    topic: "fintech"
+    status: "ready"
+    
+  - hook: "Every trading platform is building AI wrong. Here's why:"
+    topic: "trading-ai"
+    status: "ready"
+    
+  - hook: "Web3 will succeed when it stops trying to look like Web3."
+    topic: "web3"
+    status: "ready"
+    
+  - hook: "The next wave of AI products won't be chatbots. They'll be invisible."
+    topic: "ai"
+    status: "ready"
+    
+  - hook: "Crypto has 1000 DEXs and zero good UX. That's the opportunity."
+    topic: "web3"
+    status: "ready"
+    
+  - hook: "Why most AI startups will fail (and what the winners do differently):"
+    topic: "ai"
+    status: "ready"
+    
+  - hook: "The trading industry is 10 years behind on product. Here's what I'm building:"
+    topic: "trading"
+    status: "ready"
+
+service_focused:
+  - hook: "Your team spends 20 hours a week on tasks AI could do in 2 minutes."
+    topic: "service"
+    status: "ready"
+    
+  - hook: "I audit businesses for automation opportunities. Here's what I always find:"
+    topic: "service"
+    status: "ready"
+    
+  - hook: "The 3 workflows every service business should automate first:"
+    topic: "service"
+    status: "ready"
+    
+  - hook: "I saved a 10-person team 200 hours/month with one n8n workflow."
+    topic: "service"
+    status: "ready"
+    
+  - hook: "What AI automation actually costs (real numbers from real projects):"
+    topic: "service"
+    status: "ready"
+    
+  - hook: "Signs your business is ready for AI automation:"
+    topic: "service"
+    status: "ready"
+
+questions:
+  - hook: "What would you automate if you had an AI engineer for a week?"
+    topic: "engagement"
+    status: "ready"
+    
+  - hook: "Traders: What's your biggest execution problem?"
+    topic: "trading"
+    status: "ready"
+    
+  - hook: "Founders: What's the most manual process in your business right now?"
+    topic: "engagement"
+    status: "ready"
+    
+  - hook: "If you could eliminate one repetitive task from your week, what would it be?"
+    topic: "engagement"
+    status: "ready"
+    
+  - hook: "What's stopping you from automating more of your trading?"
+    topic: "trading"
+    status: "ready"
+
+data_drops:
+  - hook: "I analyzed 500 of my trades. 73% of winners had one thing in common:"
+    topic: "trading"
+    status: "ready"
+    
+  - hook: "I tracked every hour I spent on manual work for 30 days. Here's the breakdown:"
+    topic: "automation"
+    status: "ready"
+    
+  - hook: "My AI agent's win rate vs my manual trading win rate (the data):"
+    topic: "ai-trading"
+    status: "ready"
+    
+  - hook: "I tested 12 AI tools for trading. Only 2 were worth using."
+    topic: "ai"
+    status: "ready"
+
+listicles:
+  - hook: "7 things I automated this year (and how much time each saved):"
+    topic: "automation"
+    status: "ready"
+    
+  - hook: "5 AI tools I actually use daily (not just hype):"
+    topic: "ai"
+    status: "ready"
+    
+  - hook: "The 3 books that changed how I think about systems:"
+    topic: "personal"
+    status: "ready"
+    
+  - hook: "4 trading mistakes I made so you don't have to:"
+    topic: "trading"
+    status: "ready"
+
+ideas_to_develop:
+  - concept: "Case study: Building GoldX from scratch"
+    pattern: "technical_build"
+    priority: "high"
+    
+  - concept: "The sales-to-engineering pipeline (my journey)"
+    pattern: "story"
+    priority: "high"
+    
+  - concept: "Why I chose n8n over other automation tools"
+    pattern: "framework"
+    priority: "medium"
+    
+  - concept: "The future of AI in trading (my predictions)"
+    pattern: "industry_take"
+    priority: "medium"

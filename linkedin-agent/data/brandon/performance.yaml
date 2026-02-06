@@ -1,0 +1,52 @@
+# Brandon's Performance Tracking
+# Updated as content is posted and measured
+
+baseline:
+  date_established: "2025-02-06"
+  followers: null  # Get this from Brandon
+  avg_engagement: null
+  posts_analyzed: 4
+
+content_from_analysis:
+  # Posts Brandon shared during onboarding
+  - hook: "Big news! I just applied for the Product Manager role at Topstep 🚀"
+    type: "announcement"
+    topic: "job_application"
+    assessment: "Too much engagement begging, but shows passion"
+    
+  - hook: "Today, I officially launched GoldX Quant Agent"
+    type: "product_launch"
+    topic: "goldx"
+    assessment: "Good technical depth, too long, ends with engagement ask"
+    
+  - hook: "There's something uniquely strategic about the Asian session"
+    type: "trading_insight"
+    topic: "trading"
+    assessment: "BEST voice sample - thoughtful, technical, confident"
+    
+  - hook: "Speaking to Ripple's 'Trillion Dollar Man'"
+    type: "social_proof"
+    topic: "web3"
+    assessment: "Good for credibility, light on substance"
+
+posts_tracked: []
+# Add posts as they're published
+# Format:
+# - date: "2025-02-XX"
+#   hook: "First line"
+#   topic: ""
+#   type: ""
+#   impressions: 0
+#   likes: 0
+#   comments: 0
+#   engagement_rate: 0
+#   leads_generated: 0
+#   notes: ""
+
+outreach_tracked:
+  total_sent: 0
+  reply_rate: 0
+  meeting_rate: 0
+  
+monthly_summaries: []
+# Add monthly performance summaries
