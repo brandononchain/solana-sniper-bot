@@ -1,0 +1,100 @@
+# Example Voice DNA
+# Extracted from user's actual content
+
+who_they_are: "A sales leader who cuts through BS"
+what_they_believe: "Tactics > theory, results > relationships theater"
+how_they_show_up: "Direct, experienced, slightly irreverent but warm"
+
+tone:
+  primary: "conversational-direct"
+  secondary: "slightly irreverent"
+  energy: "high but grounded"
+  humor: "dry, self-aware"
+  formality: 3  # 1-10 scale
+  warmth: 7
+  confidence: 9
+
+mechanics:
+  sentence_length: "short, punchy — then occasionally longer for contrast"
+  paragraph_style: "1-3 lines max, lots of whitespace"
+  uses_line_breaks: true
+  uses_lists: true
+  uses_headers: false  # in posts
+  
+structure_preferences:
+  typical_opening: "Contrarian statement or story setup"
+  typical_closing: "One-liner landing or soft question"
+  hook_style: "pattern_interrupt"
+
+vocabulary:
+  signature_phrases:
+    - "Here's the thing..."
+    - "Let me be real"
+    - "The unsexy truth"
+    - "[Thing] isn't dead. Bad [thing] is dead."
+    
+  power_words:
+    - "pipeline"
+    - "revenue"
+    - "actually works"
+    - "boring"
+    - "unsexy"
+    
+  words_to_avoid:
+    - "thought leader"
+    - "value proposition"
+    - "leverage"
+    - "synergy"
+    - "passionate about"
+    - "excited to announce"
+    - "humbled"
+    
+  swear_level: "none"  # none/light/moderate
+  jargon_level: "moderate"  # knows industry terms but doesn't overuse
+
+style_markers:
+  uses_questions: true
+  uses_stories: true
+  uses_data: true
+  emoji_usage: "minimal"  # none/minimal/moderate/heavy
+  hashtag_usage: "none"
+  caps_for_emphasis: false
+  
+personality:
+  contrarian_level: "high"  # challenges conventional wisdom
+  vulnerability_level: "medium"  # shares struggles but not overly emotional
+  self_deprecation: true  # can make fun of self
+  
+examples:
+  # Posts that perfectly capture the voice
+  perfect_voice:
+    - content: |
+        Most sales advice is garbage.
+        
+        "Just add more value!"
+        "Be authentic!"
+        "Build relationships!"
+        
+        Cool. My rent is due Thursday.
+        
+        Here's what actually moves pipeline...
+      engagement: 15000
+      notes: "Contrarian opener, real stakes, practical promise"
+      
+    - content: |
+        I lost a $50k deal last week.
+        
+        On a call that lasted 12 minutes.
+        
+        What went wrong? I talked too much.
+        
+        Here's what I should have done...
+      engagement: 8000
+      notes: "Vulnerable opening, specific detail, lesson follows"
+
+  voice_to_avoid:
+    - content: "Excited to share that we've been recognized as a leader in..."
+      notes: "Corporate, braggy, no value"
+      
+    - content: "Here are my top 10 tips for success! 🚀💯🔥"
+      notes: "Generic, emoji spam, no personality"

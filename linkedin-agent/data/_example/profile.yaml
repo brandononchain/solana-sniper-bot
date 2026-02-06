@@ -1,0 +1,55 @@
+# Example Profile Data
+# Copy this structure for new users
+
+name: "John Smith"
+headline: "Helping B2B SaaS founders 2x pipeline without cold calls"
+about: |
+  Most B2B founders hate selling.
+  
+  I get it. You started a company to build something great, 
+  not to cold call strangers and beg for meetings.
+  
+  After 10 years in B2B sales, I've figured out what actually works...
+
+current_role:
+  title: "Founder"
+  company: "Pipeline Labs"
+  duration: "2 years"
+
+experience:
+  - title: "VP Sales"
+    company: "TechCorp"
+    duration: "3 years"
+    highlights:
+      - "Built team from 0 to 20"
+      - "Scaled ARR from $2M to $10M"
+      - "Implemented outbound system generating 500 meetings/quarter"
+  
+  - title: "Senior AE"
+    company: "SalesCloud"
+    duration: "2 years"
+    highlights:
+      - "Top performer 8 quarters running"
+      - "Closed largest deal in company history"
+
+skills:
+  - B2B Sales
+  - LinkedIn Strategy
+  - Pipeline Building
+  - Sales Leadership
+  - Outbound Sales
+
+featured:
+  - type: "post"
+    title: "The Pipeline Framework"
+    engagement: 50000
+    url: ""
+  - type: "article"
+    title: "Why Cold Calling is Dead"
+    url: ""
+
+connections: 12500
+followers: 8000
+profile_url: "https://linkedin.com/in/johnsmith"
+
+last_updated: "2024-01-15"

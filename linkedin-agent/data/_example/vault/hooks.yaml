@@ -1,0 +1,120 @@
+# Hook Vault - Generated and Tested Hooks
+
+# Status: draft | ready | tested | winner | retired
+
+contrarian:
+  - hook: "Most sales advice is garbage."
+    topic: "sales"
+    status: "winner"
+    engagement: 15000
+    notes: "Works best with tactical follow-through"
+    
+  - hook: "LinkedIn isn't saturated. Your content is just boring."
+    topic: "linkedin"
+    status: "ready"
+    engagement: null
+    
+  - hook: "Stop 'adding value.' Start solving problems."
+    topic: "sales"
+    status: "tested"
+    engagement: 4500
+    notes: "Good, not great. Needs stronger follow-up"
+    
+  - hook: "Networking advice is ruining networking."
+    topic: "networking"
+    status: "draft"
+
+  - hook: "Your CRM isn't broken. Your process is."
+    topic: "sales-ops"
+    status: "ready"
+
+transformation:
+  - hook: "18 months ago I was making $4k/month freelancing. Last month: $47k."
+    topic: "growth"
+    status: "winner"
+    engagement: 22000
+    notes: "Specific numbers + contrast = gold"
+    
+  - hook: "I went from 500 to 15,000 followers in 6 months. Here's the unsexy truth:"
+    topic: "linkedin"
+    status: "tested"
+    engagement: 8000
+    
+  - hook: "6 months ago, my cold emails got 2% replies. Now: 28%."
+    topic: "outbound"
+    status: "ready"
+
+story:
+  - hook: "Last Tuesday, I lost a $50,000 deal."
+    topic: "sales"
+    status: "winner"
+    engagement: 12000
+    notes: "Vulnerability + specific detail"
+    
+  - hook: "The email came at 3am. My biggest client was leaving."
+    topic: "business"
+    status: "draft"
+    
+  - hook: "I fired my best-paying client last month."
+    topic: "business"
+    status: "tested"
+    engagement: 6500
+
+data:
+  - hook: "I analyzed 500 viral LinkedIn posts. 73% follow the same formula."
+    topic: "linkedin"
+    status: "winner"
+    engagement: 35000
+    notes: "Specific number + promise of formula"
+    
+  - hook: "I tracked every cold email for 90 days. Here's what actually gets replies:"
+    topic: "outbound"
+    status: "ready"
+    
+  - hook: "We A/B tested 200 sales calls. The winning approach surprised us."
+    topic: "sales"
+    status: "draft"
+
+listicle:
+  - hook: "7 cold email mistakes killing your reply rate:"
+    topic: "outbound"
+    status: "tested"
+    engagement: 9000
+    
+  - hook: "5 things I'd do differently if I started over in sales:"
+    topic: "sales"
+    status: "ready"
+    
+  - hook: "The 3 LinkedIn posts that built my entire business:"
+    topic: "linkedin"
+    status: "draft"
+
+question:
+  - hook: "Why do founders keep hiring salespeople before they can sell themselves?"
+    topic: "hiring"
+    status: "tested"
+    engagement: 3500
+    notes: "Questions underperform for this voice"
+
+direct_address:
+  - hook: "To every founder who thinks LinkedIn is a waste of time:"
+    topic: "linkedin"
+    status: "tested"
+    engagement: 7000
+    
+  - hook: "B2B founders: Stop hiding behind your product."
+    topic: "founder-led-sales"
+    status: "ready"
+
+ideas_to_develop:
+  - concept: "The real reason your outbound stopped working"
+    pattern: "contrarian"
+    priority: "high"
+    
+  - concept: "What I learned from 1000 sales calls"
+    pattern: "data"
+    priority: "medium"
+    
+  - concept: "The $100k mistake I made hiring my first salesperson"
+    pattern: "story"
+    priority: "high"

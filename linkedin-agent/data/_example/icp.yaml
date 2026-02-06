@@ -1,0 +1,67 @@
+# Example ICP (Ideal Customer Profile)
+
+primary:
+  titles:
+    - "Founder"
+    - "CEO"
+    - "Head of Sales"
+    - "VP Sales"
+  company_size: "10-200 employees"
+  industry: "B2B SaaS"
+  revenue_range: "$1M-$20M ARR"
+  geography: "US, UK, Canada"
+  
+pain_points:
+  - "Pipeline is unpredictable month to month"
+  - "Outbound used to work, now getting ignored"
+  - "Spending too much time on content with little ROI"
+  - "Can't find salespeople who actually perform"
+  - "Founder doing all the selling, can't scale"
+
+buying_triggers:
+  - "Just raised Series A/B funding"
+  - "Hiring for sales roles (signals growth mode)"
+  - "Posting about pipeline struggles"
+  - "Asking for tool/agency recommendations"
+  - "Competitor just landed big customer"
+  - "New sales leader joined (wants quick wins)"
+
+objections:
+  - objection: "I don't have time for LinkedIn"
+    reframe: "That's exactly why you need a system — 30 min/day vs 3 hours of chaos"
+  - objection: "LinkedIn doesn't work for B2B"
+    reframe: "Show case studies of similar founders"
+  - objection: "I've tried content, it didn't work"
+    reframe: "Content without strategy doesn't work. Let me show you the difference."
+  - objection: "Too expensive"
+    reframe: "What's one deal worth? This pays for itself with one close."
+
+language_they_use:
+  - "pipeline"
+  - "ARR / MRR"
+  - "close rate"
+  - "quota"
+  - "outbound"
+  - "inbound"
+  - "qualified leads"
+  - "burn rate"
+  - "runway"
+
+where_they_hang_out:
+  linkedin_groups:
+    - "SaaS Founders"
+    - "Sales Leaders Community"
+    - "Startup Grind"
+  influencers_they_follow:
+    - "@salesleader1"
+    - "@sassguru"
+  events:
+    - "SaaStr"
+    - "Sales conferences"
+
+disqualifiers:
+  - "Pre-revenue startups (no budget)"
+  - "Enterprise companies (different sale)"
+  - "Non-B2B businesses"
+  - "Looking for free advice only"
+  - "Geographic mismatch for time zones"
