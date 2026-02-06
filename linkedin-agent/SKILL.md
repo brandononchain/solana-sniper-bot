@@ -1,19 +1,11 @@
-# LinkedIn Revenue Machine - Agent Skill
+---
+name: linkedin-agent
+description: LinkedIn Revenue Machine - AI-powered content, outreach, and engagement for LinkedIn. Use when user asks about LinkedIn posts, LinkedIn content, LinkedIn outreach, LinkedIn DMs, writing for LinkedIn, LinkedIn profile optimization, LinkedIn lead generation, personal branding on LinkedIn, or says "set up my LinkedIn", "LinkedIn agent", "write a post", "help me reach [person] on LinkedIn", "LinkedIn hooks", or anything related to LinkedIn marketing and sales.
+---
 
-## Overview
+# LinkedIn Revenue Machine
 
 Transform LinkedIn into a predictable revenue pipeline with AI-powered content, outreach, and engagement — all calibrated to the user's voice and ICP.
-
-## When to Use
-
-Activate when user asks about:
-- LinkedIn content/posts
-- LinkedIn outreach/DMs  
-- Building LinkedIn presence
-- Lead generation via LinkedIn
-- Personal branding
-- LinkedIn growth strategy
-- "Set up my LinkedIn" / "LinkedIn agent"
 
 ## How Users Interact
 
