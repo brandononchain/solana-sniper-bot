@@ -7,7 +7,12 @@
 import { Connection, PublicKey } from '@solana/web3.js';
 import { EventEmitter } from 'events';
 import { logger } from '../utils/logger.js';
-import { PUMP_FUN_PROGRAM_ID, LAMPORTS_PER_SOL } from '../utils/constants.js';
+import {
+  LAMPORTS_PER_SOL,
+  PUMP_CURVE_STATE_SIGNATURE,
+  PUMP_CURVE_STATE_OFFSETS,
+  PUMP_FUN_TOKEN_DECIMALS,
+} from '../utils/constants.js';
 
 export interface PriceUpdate {
   mint: string;
@@ -140,31 +145,31 @@ export class PriceTracker extends EventEmitter {
   private async fetchPrice(bondingCurve: string): Promise<number> {
     try {
       const accountInfo = await this.connection.getAccountInfo(new PublicKey(bondingCurve));
-      
-      if (!accountInfo) return 0;
 
-      // Parse bonding curve state
-      // Pump.fun bonding curve layout (simplified):
-      // - virtualTokenReserves: u64 at offset 8
-      // - virtualSolReserves: u64 at offset 16
-      // Price = virtualSolReserves / virtualTokenReserves
+      if (!accountInfo?.data || accountInfo.data.byteLength < 56) return 0;
 
-      const data = accountInfo.data;
-      
-      // Check if this is actually a bonding curve account
-      if (data.length < 40) return 0;
+      // Verify bonding curve IDL signature
+      const sig = accountInfo.data.subarray(0, 8);
+      if (sig.compare(PUMP_CURVE_STATE_SIGNATURE) !== 0) return 0;
+
+      // Check if bonding curve is complete (migrated to Raydium)
+      const complete = accountInfo.data[PUMP_CURVE_STATE_OFFSETS.COMPLETE] !== 0;
+      if (complete) return 0;
 
       // Read reserves (little-endian u64)
-      const virtualTokenReserves = this.readU64(data, 8);
-      const virtualSolReserves = this.readU64(data, 16);
+      const virtualTokenReserves = this.readU64(accountInfo.data, PUMP_CURVE_STATE_OFFSETS.VIRTUAL_TOKEN_RESERVES);
+      const virtualSolReserves = this.readU64(accountInfo.data, PUMP_CURVE_STATE_OFFSETS.VIRTUAL_SOL_RESERVES);
 
       if (virtualTokenReserves === 0n) return 0;
 
-      // Calculate price in SOL
-      const price = Number(virtualSolReserves) / Number(virtualTokenReserves);
-      return price;
+      // Price in SOL per token, accounting for decimals
+      // price = (virtualSolReserves / LAMPORTS_PER_SOL) / (virtualTokenReserves / 10^6)
+      const price =
+        (Number(virtualSolReserves) / LAMPORTS_PER_SOL) /
+        (Number(virtualTokenReserves) / 10 ** PUMP_FUN_TOKEN_DECIMALS);
 
-    } catch (err) {
+      return price;
+    } catch {
       return 0;
     }
   }
@@ -207,11 +212,11 @@ export class PriceTracker extends EventEmitter {
   ): Promise<{ tokens: number; avgPrice: number; priceImpact: number }> {
     try {
       const accountInfo = await this.connection.getAccountInfo(new PublicKey(bondingCurve));
-      if (!accountInfo) return { tokens: 0, avgPrice: 0, priceImpact: 0 };
+      if (!accountInfo?.data || accountInfo.data.byteLength < 56) return { tokens: 0, avgPrice: 0, priceImpact: 0 };
 
       const data = accountInfo.data;
-      const virtualTokenReserves = Number(this.readU64(data, 8));
-      const virtualSolReserves = Number(this.readU64(data, 16));
+      const virtualTokenReserves = Number(this.readU64(data, PUMP_CURVE_STATE_OFFSETS.VIRTUAL_TOKEN_RESERVES));
+      const virtualSolReserves = Number(this.readU64(data, PUMP_CURVE_STATE_OFFSETS.VIRTUAL_SOL_RESERVES));
 
       // Constant product formula: x * y = k
       // After buy: (x + dx) * (y - dy) = k
@@ -246,11 +251,11 @@ export class PriceTracker extends EventEmitter {
   ): Promise<{ sol: number; avgPrice: number; priceImpact: number }> {
     try {
       const accountInfo = await this.connection.getAccountInfo(new PublicKey(bondingCurve));
-      if (!accountInfo) return { sol: 0, avgPrice: 0, priceImpact: 0 };
+      if (!accountInfo?.data || accountInfo.data.byteLength < 56) return { sol: 0, avgPrice: 0, priceImpact: 0 };
 
       const data = accountInfo.data;
-      const virtualTokenReserves = Number(this.readU64(data, 8));
-      const virtualSolReserves = Number(this.readU64(data, 16));
+      const virtualTokenReserves = Number(this.readU64(data, PUMP_CURVE_STATE_OFFSETS.VIRTUAL_TOKEN_RESERVES));
+      const virtualSolReserves = Number(this.readU64(data, PUMP_CURVE_STATE_OFFSETS.VIRTUAL_SOL_RESERVES));
 
       const k = virtualSolReserves * virtualTokenReserves;
       const newTokenReserves = virtualTokenReserves + tokenAmount;

@@ -1,7 +1,8 @@
 import { Connection, PublicKey, Logs, Context } from '@solana/web3.js';
 import { EventEmitter } from 'events';
 import { logger } from '../utils/logger.js';
-import { PUMP_FUN_PROGRAM_ID } from '../utils/constants.js';
+import { PUMP_FUN_PROGRAM_ID, PUMP_FUN_BONDING_CURVE_SEED } from '../utils/constants.js';
+import { PumpFunApiClient } from '../api/pumpfun-client.js';
 
 export interface NewTokenEvent {
   signature: string;
@@ -18,6 +19,7 @@ export interface NewTokenEvent {
 export interface PumpFunListenerConfig {
   wsEndpoint: string;
   commitment?: 'processed' | 'confirmed' | 'finalized';
+  rapidApiKey?: string;
 }
 
 /**
@@ -31,12 +33,16 @@ export class PumpFunListener extends EventEmitter {
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 10;
   private reconnectDelay = 1000;
+  private apiClient: PumpFunApiClient;
 
   constructor(private config: PumpFunListenerConfig) {
     super();
     this.connection = new Connection(config.wsEndpoint, {
       commitment: config.commitment || 'confirmed',
       wsEndpoint: config.wsEndpoint.replace('https://', 'wss://').replace('http://', 'ws://'),
+    });
+    this.apiClient = new PumpFunApiClient({
+      rapidApiKey: config.rapidApiKey,
     });
   }
 
@@ -182,14 +188,15 @@ export class PumpFunListener extends EventEmitter {
 
       const mint = tokenBalance.mint;
 
-      // Get token metadata (from logs or separate metadata call)
+      // Get token metadata from Pump.fun API
       const metadata = await this.fetchTokenMetadata(mint);
 
       // Find creator (fee payer is usually the creator)
-      const creator = tx.transaction.message.accountKeys[0]?.pubkey?.toBase58();
+      const creator = metadata?.creator ||
+        tx.transaction.message.accountKeys[0]?.pubkey?.toBase58() || '';
 
-      // Find bonding curve account
-      const bondingCurve = this.findBondingCurve(tx);
+      // Derive bonding curve PDA (deterministic from mint)
+      const bondingCurve = metadata?.bondingCurve || this.deriveBondingCurve(mint);
 
       return {
         signature,
@@ -197,8 +204,8 @@ export class PumpFunListener extends EventEmitter {
         name: metadata?.name || 'Unknown',
         symbol: metadata?.symbol || 'UNK',
         uri: metadata?.uri || '',
-        creator: creator || '',
-        bondingCurve: bondingCurve || '',
+        creator,
+        bondingCurve,
         timestamp: tx.blockTime ? tx.blockTime * 1000 : Date.now(),
         slot,
       };
@@ -209,52 +216,79 @@ export class PumpFunListener extends EventEmitter {
   }
 
   /**
-   * Fetch token metadata
+   * Fetch token metadata from Pump.fun API
    */
   private async fetchTokenMetadata(mint: string): Promise<{
     name: string;
     symbol: string;
     uri: string;
+    creator?: string;
+    bondingCurve?: string;
+    twitter?: string;
+    telegram?: string;
+    website?: string;
   } | null> {
     try {
-      // For Pump.fun, metadata is often in the account data
-      // This is a simplified version - production would use Metaplex
-      
-      // Try to get from token-2022 or regular SPL token
-      const mintPk = new PublicKey(mint);
-      const accountInfo = await this.connection.getAccountInfo(mintPk);
-      
-      if (!accountInfo) return null;
+      // Fetch from Pump.fun API (supports both RapidAPI and direct)
+      const tokenInfo = await this.apiClient.getTokenInfoRapidApi(mint);
 
-      // Pump.fun stores metadata differently - often need to check metadata PDA
-      // For now, return placeholder
-      return {
-        name: 'New Token',
-        symbol: 'NEW',
-        uri: '',
-      };
+      if (tokenInfo) {
+        return {
+          name: tokenInfo.name,
+          symbol: tokenInfo.symbol,
+          uri: tokenInfo.metadata_uri || tokenInfo.image_uri || '',
+          creator: tokenInfo.creator,
+          bondingCurve: tokenInfo.bonding_curve,
+          twitter: tokenInfo.twitter,
+          telegram: tokenInfo.telegram,
+          website: tokenInfo.website,
+        };
+      }
+
+      return null;
     } catch {
       return null;
     }
   }
 
   /**
-   * Find bonding curve account from transaction
+   * Derive bonding curve PDA from token mint
    */
-  private findBondingCurve(tx: any): string | null {
-    // Bonding curve is typically one of the accounts in the create instruction
-    // This is simplified - real implementation would check account owners
+  private deriveBondingCurve(mint: string): string {
+    const mintPk = new PublicKey(mint);
+    const [bondingCurve] = PublicKey.findProgramAddressSync(
+      [Buffer.from(PUMP_FUN_BONDING_CURVE_SEED), mintPk.toBuffer()],
+      PUMP_FUN_PROGRAM_ID
+    );
+    return bondingCurve.toBase58();
+  }
+
+  /**
+   * Find bonding curve from transaction accounts or derive from mint
+   */
+  private findBondingCurve(tx: any, mint?: string): string | null {
+    // Prefer derivation from mint (deterministic and correct)
+    if (mint) {
+      return this.deriveBondingCurve(mint);
+    }
+
+    // Fallback: look for PDA in transaction accounts
     const accounts = tx.transaction.message.accountKeys;
-    
     for (const account of accounts) {
       const pubkey = account.pubkey?.toBase58?.() || account.toBase58?.();
-      if (pubkey && pubkey !== '11111111111111111111111111111111') {
-        // Check if this is owned by Pump.fun program
-        // In production, verify the account owner
+      if (!pubkey) continue;
+      // Skip system/token programs
+      if (pubkey === '11111111111111111111111111111111' ||
+          pubkey === 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA') {
+        continue;
+      }
+      // Check if account is owned by Pump.fun program
+      const accountMeta = account.source || account.owner;
+      if (accountMeta === PUMP_FUN_PROGRAM_ID.toBase58()) {
         return pubkey;
       }
     }
-    
+
     return null;
   }
 

@@ -4,9 +4,42 @@ import { PublicKey } from '@solana/web3.js';
 export const PUMP_FUN_PROGRAM_ID = new PublicKey('6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P');
 export const PUMP_FUN_MINT_AUTHORITY = new PublicKey('TSLvdd1pWpHVjahSpsvCXUbgwsL3JAcvokwaKt1eokM');
 
+// Pump.fun Global Account (PDA from ["global"] seed)
+export const PUMP_FUN_GLOBAL = new PublicKey('4wTV1YmiEkRvAtNtsSGPtUrqRYQMe5SKy2uB4Jjaxnjf');
+
+// Pump.fun Fee Recipient
+export const PUMP_FUN_FEE_RECIPIENT = new PublicKey('CebN5WGQ4jvEPvsVU4EoHEpgzq1VV7AbicfhtW4xC9iM');
+
+// Pump.fun Event Authority (PDA from ["__event_authority"] seed)
+export const PUMP_FUN_EVENT_AUTHORITY = PublicKey.findProgramAddressSync(
+  [Buffer.from('__event_authority')],
+  new PublicKey('6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P')
+)[0];
+
+// Pump.fun Instruction Discriminators (Anchor: sha256("global:<name>").slice(0, 8))
+export const PUMP_FUN_BUY_DISCRIMINATOR = Buffer.from([102, 6, 61, 18, 1, 218, 235, 234]);
+export const PUMP_FUN_SELL_DISCRIMINATOR = Buffer.from([51, 230, 133, 164, 1, 127, 131, 173]);
+
+// Pump.fun Bonding Curve State
+export const PUMP_CURVE_STATE_SIGNATURE = Buffer.from([0x17, 0xb7, 0xf8, 0x37, 0x60, 0xd8, 0xac, 0x60]);
+export const PUMP_CURVE_STATE_OFFSETS = {
+  VIRTUAL_TOKEN_RESERVES: 0x08,
+  VIRTUAL_SOL_RESERVES: 0x10,
+  REAL_TOKEN_RESERVES: 0x18,
+  REAL_SOL_RESERVES: 0x20,
+  TOKEN_TOTAL_SUPPLY: 0x28,
+  COMPLETE: 0x30,
+} as const;
+
+// Pump.fun token decimals
+export const PUMP_FUN_TOKEN_DECIMALS = 6;
+
 // Token Program
 export const TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
 export const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL');
+
+// System & Rent
+export const RENT_PROGRAM_ID = new PublicKey('SysvarRent111111111111111111111111111111111');
 
 // Jito
 export const JITO_TIP_ACCOUNTS = [
@@ -20,7 +53,7 @@ export const JITO_TIP_ACCOUNTS = [
   '3AVi9Tg9Uo68tJfuvoKvqKNWKkC5wPdSSdeBnizKZ6jT',
 ].map(addr => new PublicKey(addr));
 
-// Bonding curve constants for Pump.fun
+// Bonding curve PDA seed
 export const PUMP_FUN_BONDING_CURVE_SEED = 'bonding-curve';
 
 // Lamports

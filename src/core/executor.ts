@@ -13,10 +13,24 @@ import {
   getAssociatedTokenAddress,
   createAssociatedTokenAccountInstruction,
   TOKEN_PROGRAM_ID,
+  ASSOCIATED_TOKEN_PROGRAM_ID as SPL_ASSOCIATED_TOKEN_PROGRAM_ID,
 } from '@solana/spl-token';
 import { nanoid } from 'nanoid';
 import { logger } from '../utils/logger.js';
-import { PUMP_FUN_PROGRAM_ID, JITO_TIP_ACCOUNTS } from '../utils/constants.js';
+import {
+  PUMP_FUN_PROGRAM_ID,
+  PUMP_FUN_GLOBAL,
+  PUMP_FUN_FEE_RECIPIENT,
+  PUMP_FUN_EVENT_AUTHORITY,
+  PUMP_FUN_BUY_DISCRIMINATOR,
+  PUMP_FUN_SELL_DISCRIMINATOR,
+  PUMP_FUN_BONDING_CURVE_SEED,
+  PUMP_CURVE_STATE_SIGNATURE,
+  PUMP_CURVE_STATE_OFFSETS,
+  PUMP_FUN_TOKEN_DECIMALS,
+  JITO_TIP_ACCOUNTS,
+  RENT_PROGRAM_ID,
+} from '../utils/constants.js';
 import type { Database } from 'better-sqlite3';
 
 export interface ExecutorConfig {
@@ -226,17 +240,24 @@ export class TradeExecutor {
 
     // Calculate amounts with slippage
     const amountLamports = params.amountSol * LAMPORTS_PER_SOL;
-    const minTokensOut = params.minTokensOut || 0;
+    // Apply slippage to max SOL cost
+    const maxSolCostLamports = Math.floor(amountLamports * (1 + slippageBps / 10000));
+
+    // Calculate expected tokens from bonding curve
+    let expectedTokens = params.minTokensOut || 0;
+    if (expectedTokens === 0) {
+      const calcResult = await this.calculateBuyAmount(params.bondingCurve, params.amountSol);
+      expectedTokens = Number(calcResult.tokensOut);
+    }
 
     // Build Pump.fun buy instruction
-    // Note: This is a simplified version - real implementation needs actual Pump.fun IDL
     const buyIx = await this.buildPumpFunBuyInstruction(
       keypair.publicKey,
       mint,
       bondingCurve,
       ata,
-      amountLamports,
-      minTokensOut,
+      maxSolCostLamports,
+      expectedTokens,
       slippageBps
     );
 
@@ -324,8 +345,33 @@ export class TradeExecutor {
   }
 
   /**
-   * Build Pump.fun buy instruction
-   * This is a simplified placeholder - real implementation needs the actual Pump.fun IDL
+   * Derive the bonding curve PDA from a token mint
+   */
+  static deriveBondingCurve(mint: PublicKey): PublicKey {
+    return PublicKey.findProgramAddressSync(
+      [Buffer.from(PUMP_FUN_BONDING_CURVE_SEED), mint.toBuffer()],
+      PUMP_FUN_PROGRAM_ID
+    )[0];
+  }
+
+  /**
+   * Build Pump.fun buy instruction with correct Anchor IDL account layout
+   *
+   * Accounts (in order from IDL):
+   *  0. global           (not mutable, not signer)
+   *  1. feeRecipient     (mutable, not signer)
+   *  2. mint             (not mutable, not signer)
+   *  3. bondingCurve     (mutable, not signer)
+   *  4. associatedBondingCurve (mutable, not signer)
+   *  5. associatedUser   (mutable, not signer)  -- buyer's ATA
+   *  6. user             (mutable, signer)
+   *  7. systemProgram    (not mutable, not signer)
+   *  8. tokenProgram     (not mutable, not signer)
+   *  9. rent             (not mutable, not signer)
+   * 10. eventAuthority   (not mutable, not signer)
+   * 11. program          (not mutable, not signer)
+   *
+   * Args: amount (u64 - tokens to buy), maxSolCost (u64 - max lamports to spend)
    */
   private async buildPumpFunBuyInstruction(
     buyer: PublicKey,
@@ -334,25 +380,37 @@ export class TradeExecutor {
     buyerAta: PublicKey,
     amountLamports: number,
     minTokensOut: number,
-    slippageBps: number
+    _slippageBps: number
   ): Promise<TransactionInstruction> {
-    // In production, you would use the actual Pump.fun IDL and Anchor
-    // This is a placeholder structure
-    
+    // Derive associated bonding curve (the bonding curve's token account)
+    const associatedBondingCurve = await getAssociatedTokenAddress(
+      mint,
+      bondingCurve,
+      true // allowOwnerOffCurve - PDA is off curve
+    );
+
     const keys = [
-      { pubkey: bondingCurve, isSigner: false, isWritable: true },
+      { pubkey: PUMP_FUN_GLOBAL, isSigner: false, isWritable: false },
+      { pubkey: PUMP_FUN_FEE_RECIPIENT, isSigner: false, isWritable: true },
       { pubkey: mint, isSigner: false, isWritable: false },
-      { pubkey: buyer, isSigner: true, isWritable: true },
+      { pubkey: bondingCurve, isSigner: false, isWritable: true },
+      { pubkey: associatedBondingCurve, isSigner: false, isWritable: true },
       { pubkey: buyerAta, isSigner: false, isWritable: true },
+      { pubkey: buyer, isSigner: true, isWritable: true },
       { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
       { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+      { pubkey: RENT_PROGRAM_ID, isSigner: false, isWritable: false },
+      { pubkey: PUMP_FUN_EVENT_AUTHORITY, isSigner: false, isWritable: false },
+      { pubkey: PUMP_FUN_PROGRAM_ID, isSigner: false, isWritable: false },
     ];
 
-    // Instruction data (simplified - needs actual Pump.fun serialization)
-    const data = Buffer.alloc(24);
-    data.writeUInt8(0, 0); // Buy instruction discriminator
-    data.writeBigUInt64LE(BigInt(amountLamports), 8);
-    data.writeBigUInt64LE(BigInt(minTokensOut), 16);
+    // Instruction data: 8-byte discriminator + amount (u64) + maxSolCost (u64)
+    const data = Buffer.alloc(8 + 8 + 8);
+    PUMP_FUN_BUY_DISCRIMINATOR.copy(data, 0);
+    // amount = tokens to buy (use minTokensOut as the desired token amount)
+    data.writeBigUInt64LE(BigInt(minTokensOut), 8);
+    // maxSolCost = max lamports willing to spend (the SOL amount with slippage)
+    data.writeBigUInt64LE(BigInt(amountLamports), 16);
 
     return new TransactionInstruction({
       programId: PUMP_FUN_PROGRAM_ID,
@@ -362,7 +420,23 @@ export class TradeExecutor {
   }
 
   /**
-   * Build Pump.fun sell instruction
+   * Build Pump.fun sell instruction with correct Anchor IDL account layout
+   *
+   * Accounts (in order from IDL):
+   *  0. global           (not mutable, not signer)
+   *  1. feeRecipient     (mutable, not signer)
+   *  2. mint             (not mutable, not signer)
+   *  3. bondingCurve     (mutable, not signer)
+   *  4. associatedBondingCurve (mutable, not signer)
+   *  5. associatedUser   (mutable, not signer)  -- seller's ATA
+   *  6. user             (mutable, signer)
+   *  7. systemProgram    (not mutable, not signer)
+   *  8. associatedTokenProgram (not mutable, not signer)
+   *  9. tokenProgram     (not mutable, not signer)
+   * 10. eventAuthority   (not mutable, not signer)
+   * 11. program          (not mutable, not signer)
+   *
+   * Args: amount (u64 - tokens to sell), minSolOutput (u64 - min lamports to receive)
    */
   private async buildPumpFunSellInstruction(
     seller: PublicKey,
@@ -371,20 +445,36 @@ export class TradeExecutor {
     sellerAta: PublicKey,
     amountTokens: number,
     minSolOut: number,
-    slippageBps: number
+    _slippageBps: number
   ): Promise<TransactionInstruction> {
+    // Derive associated bonding curve (the bonding curve's token account)
+    const associatedBondingCurve = await getAssociatedTokenAddress(
+      mint,
+      bondingCurve,
+      true // allowOwnerOffCurve - PDA is off curve
+    );
+
     const keys = [
-      { pubkey: bondingCurve, isSigner: false, isWritable: true },
+      { pubkey: PUMP_FUN_GLOBAL, isSigner: false, isWritable: false },
+      { pubkey: PUMP_FUN_FEE_RECIPIENT, isSigner: false, isWritable: true },
       { pubkey: mint, isSigner: false, isWritable: false },
-      { pubkey: seller, isSigner: true, isWritable: true },
+      { pubkey: bondingCurve, isSigner: false, isWritable: true },
+      { pubkey: associatedBondingCurve, isSigner: false, isWritable: true },
       { pubkey: sellerAta, isSigner: false, isWritable: true },
+      { pubkey: seller, isSigner: true, isWritable: true },
       { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+      { pubkey: SPL_ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
       { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+      { pubkey: PUMP_FUN_EVENT_AUTHORITY, isSigner: false, isWritable: false },
+      { pubkey: PUMP_FUN_PROGRAM_ID, isSigner: false, isWritable: false },
     ];
 
-    const data = Buffer.alloc(24);
-    data.writeUInt8(1, 0); // Sell instruction discriminator
-    data.writeBigUInt64LE(BigInt(Math.floor(amountTokens)), 8);
+    // Instruction data: 8-byte discriminator + amount (u64) + minSolOutput (u64)
+    const data = Buffer.alloc(8 + 8 + 8);
+    PUMP_FUN_SELL_DISCRIMINATOR.copy(data, 0);
+    // amount = token amount (in raw units with 6 decimals)
+    data.writeBigUInt64LE(BigInt(Math.floor(amountTokens * 10 ** PUMP_FUN_TOKEN_DECIMALS)), 8);
+    // minSolOutput = min lamports to receive
     data.writeBigUInt64LE(BigInt(Math.floor(minSolOut * LAMPORTS_PER_SOL)), 16);
 
     return new TransactionInstruction({
@@ -602,20 +692,93 @@ export class TradeExecutor {
   }
 
   /**
-   * Get current token price from bonding curve
+   * Get current token price from bonding curve state
+   * Parses the on-chain bonding curve account to calculate price
    */
-  async getPrice(bondingCurve: string, mint: string): Promise<number> {
-    // In production, you would fetch the bonding curve state and calculate the price
-    // This is a placeholder
+  async getPrice(bondingCurve: string, _mint: string): Promise<number> {
     try {
       const accountInfo = await this.connection.getAccountInfo(new PublicKey(bondingCurve));
-      if (!accountInfo) return 0;
+      if (!accountInfo?.data || accountInfo.data.byteLength < 56) return 0;
 
-      // Parse bonding curve state (needs actual Pump.fun data layout)
-      // For now, return 0 to indicate unknown
-      return 0;
+      // Verify this is a valid bonding curve account by checking the IDL signature
+      const sig = accountInfo.data.subarray(0, 8);
+      if (sig.compare(PUMP_CURVE_STATE_SIGNATURE) !== 0) return 0;
+
+      const virtualTokenReserves = accountInfo.data.readBigUInt64LE(
+        PUMP_CURVE_STATE_OFFSETS.VIRTUAL_TOKEN_RESERVES
+      );
+      const virtualSolReserves = accountInfo.data.readBigUInt64LE(
+        PUMP_CURVE_STATE_OFFSETS.VIRTUAL_SOL_RESERVES
+      );
+
+      if (virtualTokenReserves === 0n) return 0;
+
+      // Check if bonding curve is complete (migrated to Raydium)
+      const complete = accountInfo.data[PUMP_CURVE_STATE_OFFSETS.COMPLETE] !== 0;
+      if (complete) return 0;
+
+      // Price = (virtualSolReserves / LAMPORTS_PER_SOL) / (virtualTokenReserves / 10^6)
+      const price =
+        (Number(virtualSolReserves) / LAMPORTS_PER_SOL) /
+        (Number(virtualTokenReserves) / 10 ** PUMP_FUN_TOKEN_DECIMALS);
+
+      return price;
     } catch {
       return 0;
     }
+  }
+
+  /**
+   * Get full bonding curve state for a token
+   */
+  async getBondingCurveState(bondingCurve: string): Promise<{
+    virtualTokenReserves: bigint;
+    virtualSolReserves: bigint;
+    realTokenReserves: bigint;
+    realSolReserves: bigint;
+    tokenTotalSupply: bigint;
+    complete: boolean;
+  } | null> {
+    try {
+      const accountInfo = await this.connection.getAccountInfo(new PublicKey(bondingCurve));
+      if (!accountInfo?.data || accountInfo.data.byteLength < 56) return null;
+
+      const sig = accountInfo.data.subarray(0, 8);
+      if (sig.compare(PUMP_CURVE_STATE_SIGNATURE) !== 0) return null;
+
+      return {
+        virtualTokenReserves: accountInfo.data.readBigUInt64LE(PUMP_CURVE_STATE_OFFSETS.VIRTUAL_TOKEN_RESERVES),
+        virtualSolReserves: accountInfo.data.readBigUInt64LE(PUMP_CURVE_STATE_OFFSETS.VIRTUAL_SOL_RESERVES),
+        realTokenReserves: accountInfo.data.readBigUInt64LE(PUMP_CURVE_STATE_OFFSETS.REAL_TOKEN_RESERVES),
+        realSolReserves: accountInfo.data.readBigUInt64LE(PUMP_CURVE_STATE_OFFSETS.REAL_SOL_RESERVES),
+        tokenTotalSupply: accountInfo.data.readBigUInt64LE(PUMP_CURVE_STATE_OFFSETS.TOKEN_TOTAL_SUPPLY),
+        complete: accountInfo.data[PUMP_CURVE_STATE_OFFSETS.COMPLETE] !== 0,
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Calculate expected tokens out for a given SOL input using bonding curve math
+   */
+  async calculateBuyAmount(bondingCurve: string, solAmount: number): Promise<{
+    tokensOut: bigint;
+    priceImpactPct: number;
+  }> {
+    const state = await this.getBondingCurveState(bondingCurve);
+    if (!state || state.complete) return { tokensOut: 0n, priceImpactPct: 0 };
+
+    const solIn = BigInt(Math.floor(solAmount * LAMPORTS_PER_SOL));
+    const k = state.virtualSolReserves * state.virtualTokenReserves;
+    const newSolReserves = state.virtualSolReserves + solIn;
+    const newTokenReserves = k / newSolReserves;
+    const tokensOut = state.virtualTokenReserves - newTokenReserves;
+
+    const spotPrice = Number(state.virtualSolReserves) / Number(state.virtualTokenReserves);
+    const avgPrice = Number(solIn) / Number(tokensOut);
+    const priceImpactPct = ((avgPrice - spotPrice) / spotPrice) * 100;
+
+    return { tokensOut, priceImpactPct };
   }
 }

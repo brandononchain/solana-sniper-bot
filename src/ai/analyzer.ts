@@ -170,7 +170,7 @@ export class TokenAnalyzer {
       // Check for social links in URI metadata
       if (token.uri && features.uriValid) {
         try {
-          const metadata = await fetch(token.uri).then(r => r.json());
+          const metadata = await fetch(token.uri).then(r => r.json()) as Record<string, unknown>;
           features.hasSocials = !!(metadata.twitter || metadata.telegram || metadata.website);
         } catch {
           // Ignore metadata fetch errors
