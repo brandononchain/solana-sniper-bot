@@ -95,6 +95,11 @@ const ConfigSchema = z.object({
     auth_token: z.string().default(''),
   }).default({}),
 
+  pumpfun_api: z.object({
+    rapidapi_key: z.string().optional(),
+    rapidapi_host: z.string().default('pumpfun-scraper-api.p.rapidapi.com'),
+  }).default({}),
+
   notifications: z.object({
     telegram: z.object({
       enabled: z.boolean().default(false),

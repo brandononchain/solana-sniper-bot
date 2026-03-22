@@ -187,19 +187,27 @@ export class ScamFilter {
 
   /**
    * Check if mint authority is renounced
+   *
+   * SPL Token Mint Layout:
+   *   offset 0-3:   COption<Pubkey> tag for mint_authority (4 bytes, 0=None, 1=Some)
+   *   offset 4-35:  mint_authority pubkey (32 bytes)
+   *   offset 36-43: supply (u64)
+   *   offset 44:    decimals (u8)
+   *   offset 45:    is_initialized (bool)
+   *   offset 46-49: COption<Pubkey> tag for freeze_authority (4 bytes)
+   *   offset 50-81: freeze_authority pubkey (32 bytes)
    */
   private async checkMintAuthority(mint: string): Promise<{ renounced: boolean }> {
     try {
       const mintPk = new PublicKey(mint);
       const accountInfo = await this.connection.getAccountInfo(mintPk);
-      
-      if (!accountInfo) {
+
+      if (!accountInfo || accountInfo.data.length < 82) {
         return { renounced: false };
       }
 
-      // Parse mint account data
-      // Mint authority is at offset 0, with first byte indicating option (0 = None)
-      const mintAuthorityOption = accountInfo.data[0];
+      // COption tag is a u32 LE: 0 = None (renounced), 1 = Some (active)
+      const mintAuthorityOption = accountInfo.data.readUInt32LE(0);
       return { renounced: mintAuthorityOption === 0 };
     } catch (err) {
       logger.warn('Failed to check mint authority', { mint, error: String(err) });
@@ -214,13 +222,13 @@ export class ScamFilter {
     try {
       const mintPk = new PublicKey(mint);
       const accountInfo = await this.connection.getAccountInfo(mintPk);
-      
-      if (!accountInfo) {
+
+      if (!accountInfo || accountInfo.data.length < 82) {
         return { enabled: true }; // Assume worst case
       }
 
-      // Freeze authority is at offset 36 (after mint authority)
-      const freezeAuthorityOption = accountInfo.data[36];
+      // Freeze authority COption tag at offset 46 (u32 LE: 0 = None, 1 = Some)
+      const freezeAuthorityOption = accountInfo.data.readUInt32LE(46);
       return { enabled: freezeAuthorityOption !== 0 };
     } catch (err) {
       logger.warn('Failed to check freeze authority', { mint, error: String(err) });

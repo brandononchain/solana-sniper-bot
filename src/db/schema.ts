@@ -57,6 +57,7 @@ export function initializeDatabase(dbPath: string): Database.Database {
       token_mint TEXT NOT NULL,
       token_name TEXT,
       token_symbol TEXT,
+      bonding_curve TEXT,
       entry_price REAL NOT NULL,
       entry_tx TEXT,
       current_price REAL,
@@ -144,8 +145,23 @@ export function initializeDatabase(dbPath: string): Database.Database {
     CREATE INDEX IF NOT EXISTS idx_blacklist_type ON blacklist(type);
   `);
 
+  // Run migrations for existing databases
+  runMigrations(db);
+
   logger.info('Database initialized', { path: dbPath });
   return db;
+}
+
+/**
+ * Run database migrations for schema updates
+ */
+function runMigrations(db: Database.Database): void {
+  // Add bonding_curve column to positions table if it doesn't exist
+  const cols = db.prepare(`PRAGMA table_info(positions)`).all() as { name: string }[];
+  const hasBC = cols.some(c => c.name === 'bonding_curve');
+  if (!hasBC) {
+    db.exec(`ALTER TABLE positions ADD COLUMN bonding_curve TEXT`);
+  }
 }
 
 // Query helpers
@@ -171,6 +187,7 @@ export interface PositionRecord {
   tokenMint: string;
   tokenName?: string;
   tokenSymbol?: string;
+  bondingCurve?: string;
   entryPrice: number;
   currentPrice?: number;
   highestPrice?: number;
@@ -210,6 +227,7 @@ export function getOpenPositions(db: Database.Database, walletId?: string): Posi
     tokenMint: row.token_mint,
     tokenName: row.token_name,
     tokenSymbol: row.token_symbol,
+    bondingCurve: row.bonding_curve,
     entryPrice: row.entry_price,
     currentPrice: row.current_price,
     highestPrice: row.highest_price,

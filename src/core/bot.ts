@@ -1,15 +1,15 @@
-import { Connection } from '@solana/web3.js';
+import { Connection, PublicKey } from '@solana/web3.js';
 import { EventEmitter } from 'events';
 import { nanoid } from 'nanoid';
 import { logger } from '../utils/logger.js';
-import { initializeDatabase, getOpenPositions, updateDailyStat } from '../db/schema.js';
+import { initializeDatabase, getOpenPositions, getTodayStats, updateDailyStat } from '../db/schema.js';
 import { WalletManager } from '../wallet/manager.js';
 import { PumpFunListener, type NewTokenEvent } from './listener.js';
 import { TradeExecutor, type TradeResult } from './executor.js';
 import { RiskManager, type PositionAction } from './risk-manager.js';
 import { ScamFilter, type TokenMetadata } from '../filters/scam-filter.js';
 import { TokenAnalyzer, type AnalysisResult } from '../ai/analyzer.js';
-import { POSITION_CHECK_INTERVAL_MS, PRICE_UPDATE_INTERVAL_MS } from '../utils/constants.js';
+import { POSITION_CHECK_INTERVAL_MS } from '../utils/constants.js';
 import type { Config } from '../config.js';
 import type { Database } from 'better-sqlite3';
 
@@ -75,6 +75,7 @@ export class SniperBot extends EventEmitter {
     this.listener = new PumpFunListener({
       wsEndpoint: config.rpc.ws || config.rpc.primary,
       commitment: 'confirmed',
+      rapidApiKey: config.pumpfun_api?.rapidapi_key,
     });
 
     this.executor = new TradeExecutor(this.connection, this.db, {
@@ -326,19 +327,20 @@ export class SniperBot extends EventEmitter {
       updateDailyStat(this.db, 'tokensSniped', 1);
       updateDailyStat(this.db, 'totalVolumeSol', amountSol);
 
-      // Create position
+      // Create position with bonding curve for price tracking
       this.db.prepare(`
         INSERT INTO positions (
-          id, wallet_id, token_mint, token_name, token_symbol,
+          id, wallet_id, token_mint, token_name, token_symbol, bonding_curve,
           entry_price, entry_tx, highest_price, amount_tokens, remaining_tokens,
           cost_basis_sol, stop_loss_pct, take_profit_tiers
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).run(
         nanoid(),
         wallet.id,
         event.mint,
         event.name,
         event.symbol,
+        event.bondingCurve,
         result.price,
         result.signature,
         result.price,
@@ -374,9 +376,13 @@ export class SniperBot extends EventEmitter {
     
     for (const position of positions) {
       try {
-        // Get current price
+        // Derive bonding curve from stored value or from mint
+        const bondingCurve = position.bondingCurve ||
+          TradeExecutor.deriveBondingCurve(new PublicKey(position.tokenMint)).toBase58();
+
+        // Get current price from bonding curve state
         const currentPrice = await this.executor.getPrice(
-          position.tokenMint, // This should be bonding curve, but we're simplifying
+          bondingCurve,
           position.tokenMint
         );
 
@@ -431,9 +437,15 @@ export class SniperBot extends EventEmitter {
       action.reason
     );
 
+    // Derive bonding curve from stored value or from mint PDA
+    const bondingCurve = position.bondingCurve ||
+      TradeExecutor.deriveBondingCurve(
+        new (await import('@solana/web3.js')).PublicKey(position.tokenMint)
+      ).toBase58();
+
     const result = await this.executor.sell(keypair, {
       mint: position.tokenMint,
-      bondingCurve: position.tokenMint, // Simplified
+      bondingCurve,
       amountTokens: tokensToSell,
     });
 
@@ -475,6 +487,7 @@ export class SniperBot extends EventEmitter {
     const balance = wallet ? await this.walletManager.getBalance(wallet.publicKey) : null;
     const positions = getOpenPositions(this.db);
     const riskStatus = this.riskManager.getStatus();
+    const todayStats = getTodayStats(this.db);
 
     return {
       isRunning: this.isRunning,
@@ -482,7 +495,7 @@ export class SniperBot extends EventEmitter {
       activeWallet: wallet?.publicKey,
       balance: balance?.sol,
       openPositions: positions.length,
-      todayTrades: riskStatus.openPositions,
+      todayTrades: todayStats.totalTrades,
       todayPnl: riskStatus.dailyPnl,
       tokensAnalyzed: this.tokensAnalyzed,
       tokensBought: this.tokensBought,
@@ -549,9 +562,12 @@ export class SniperBot extends EventEmitter {
     logger.warn(`🚨 Closing all ${positions.length} positions`);
 
     for (const position of positions) {
+      const bondingCurve = position.bondingCurve ||
+        TradeExecutor.deriveBondingCurve(new PublicKey(position.tokenMint)).toBase58();
+
       await this.executor.sell(keypair, {
         mint: position.tokenMint,
-        bondingCurve: position.tokenMint,
+        bondingCurve,
         amountTokens: position.remainingTokens,
       });
     }

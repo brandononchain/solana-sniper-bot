@@ -47,13 +47,13 @@ trading:
     # Take profit tiers: sell portions at price multiples
     take_profit_tiers:
       - multiplier: 2          # At 2x (100% gain)
-        sell_pct: 25           # Sell 25% of position
+        sellPct: 25           # Sell 25% of position
       - multiplier: 3          # At 3x (200% gain)
-        sell_pct: 25           # Sell 25% more
+        sellPct: 25           # Sell 25% more
       - multiplier: 5          # At 5x (400% gain)
-        sell_pct: 25           # Sell 25% more
+        sellPct: 25           # Sell 25% more
       - multiplier: 10         # At 10x (900% gain)
-        sell_pct: 25           # Sell remaining
+        sellPct: 25           # Sell remaining
 
 # ─────────────────────────────────────────────────────────────────────────────────
 #  RISK MANAGEMENT
@@ -120,6 +120,14 @@ ai:
     market_timing: 0.15
     early_buyers: 0.15
     liquidity_depth: 0.15
+
+# ─────────────────────────────────────────────────────────────────────────────────
+#  PUMP.FUN API (Optional - for enhanced token metadata scraping)
+# ─────────────────────────────────────────────────────────────────────────────────
+# Get a key at: https://rapidapi.com/domainfinderapi/api/pumpfun-scraper-api
+pumpfun_api:
+  rapidapi_key: ""                                    # Your RapidAPI key (optional)
+  rapidapi_host: "pumpfun-scraper-api.p.rapidapi.com"  # API host
 
 # ─────────────────────────────────────────────────────────────────────────────────
 #  NOTIFICATIONS
