@@ -3,22 +3,25 @@ import { PublicKey } from '@solana/web3.js';
 // Pump.fun Program IDs
 export const PUMP_FUN_PROGRAM_ID = new PublicKey('6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P');
 export const PUMP_FUN_MINT_AUTHORITY = new PublicKey('TSLvdd1pWpHVjahSpsvCXUbgwsL3JAcvokwaKt1eokM');
+export const PUMP_FEE_PROGRAM_ID = new PublicKey('pfeeUxB6jkeY1Hxd7CsFCAjcbHA9rWtchMGdZ6VojVZ');
 
 // Pump.fun Global Account (PDA from ["global"] seed)
 export const PUMP_FUN_GLOBAL = new PublicKey('4wTV1YmiEkRvAtNtsSGPtUrqRYQMe5SKy2uB4Jjaxnjf');
 
-// Pump.fun Fee Recipient
+// Pump.fun Fee Recipient. Kept as a conservative fallback. Newer Pump IDLs support multiple fee recipients.
 export const PUMP_FUN_FEE_RECIPIENT = new PublicKey('CebN5WGQ4jvEPvsVU4EoHEpgzq1VV7AbicfhtW4xC9iM');
 
 // Pump.fun Event Authority (PDA from ["__event_authority"] seed)
 export const PUMP_FUN_EVENT_AUTHORITY = PublicKey.findProgramAddressSync(
   [Buffer.from('__event_authority')],
-  new PublicKey('6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P')
+  PUMP_FUN_PROGRAM_ID
 )[0];
 
 // Pump.fun Instruction Discriminators (Anchor: sha256("global:<name>").slice(0, 8))
 export const PUMP_FUN_BUY_DISCRIMINATOR = Buffer.from([102, 6, 61, 18, 1, 218, 235, 234]);
+export const PUMP_FUN_BUY_EXACT_SOL_IN_DISCRIMINATOR = Buffer.from([56, 252, 116, 8, 158, 223, 205, 95]);
 export const PUMP_FUN_SELL_DISCRIMINATOR = Buffer.from([51, 230, 133, 164, 1, 127, 131, 173]);
+export const PUMP_FUN_EXTEND_ACCOUNT_DISCRIMINATOR = Buffer.from([234, 102, 194, 203, 150, 72, 62, 229]);
 
 // Pump.fun Bonding Curve State
 export const PUMP_CURVE_STATE_SIGNATURE = Buffer.from([0x17, 0xb7, 0xf8, 0x37, 0x60, 0xd8, 0xac, 0x60]);
@@ -29,6 +32,7 @@ export const PUMP_CURVE_STATE_OFFSETS = {
   REAL_SOL_RESERVES: 0x20,
   TOKEN_TOTAL_SUPPLY: 0x28,
   COMPLETE: 0x30,
+  CREATOR: 0x31,
 } as const;
 
 // Pump.fun token decimals
@@ -41,20 +45,35 @@ export const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey('ATokenGPvbdGVxr1b2hvZb
 // System & Rent
 export const RENT_PROGRAM_ID = new PublicKey('SysvarRent111111111111111111111111111111111');
 
+// Current Pump PDA seeds
+export const PUMP_FUN_BONDING_CURVE_SEED = 'bonding-curve';
+export const PUMP_FUN_CREATOR_VAULT_SEED = 'creator-vault';
+export const PUMP_FUN_GLOBAL_VOLUME_ACCUMULATOR_SEED = 'global_volume_accumulator';
+export const PUMP_FUN_USER_VOLUME_ACCUMULATOR_SEED = 'user_volume_accumulator';
+export const PUMP_FEE_CONFIG_SEED = 'fee_config';
+export const PUMP_MIN_EXTENDED_BONDING_CURVE_BYTES = 150;
+
+export const PUMP_FUN_GLOBAL_VOLUME_ACCUMULATOR = PublicKey.findProgramAddressSync(
+  [Buffer.from(PUMP_FUN_GLOBAL_VOLUME_ACCUMULATOR_SEED)],
+  PUMP_FUN_PROGRAM_ID
+)[0];
+
+export const PUMP_FEE_CONFIG = PublicKey.findProgramAddressSync(
+  [Buffer.from(PUMP_FEE_CONFIG_SEED), PUMP_FUN_PROGRAM_ID.toBuffer()],
+  PUMP_FEE_PROGRAM_ID
+)[0];
+
 // Jito
 export const JITO_TIP_ACCOUNTS = [
   '96gYZGLnJYVFmbjzopPSU6QiEV5fGqZNyN9nmNhvrZU5',
   'HFqU5x63VTqvQss8hp11i4wVV8bD44PvwucfZ2bU7gRe',
   'Cw8CFyM9FkoMi7K7Crf6HNQqf4uEMzpKw6QNghXLvLkY',
   'ADaUMid9yfUytqMBgopwjb2DTLSokTSzL1zt6iGPaS49',
-  'DfXygSm4jCyNCybVYYK6DwvWqjKee8pbDmJGcLWNDXjh',
+  'DfXygSm4jCyNCybVYYK6DwvV8b4WbGxNEcs8q1hDmmZg2',
   'ADuUkR4vqLUMWXxW9gh6D6L8pMSawimctcNZ5pGwDcEt',
   'DttWaMuVvTiduZRnguLF7jNxTgiMBZ1hyAumKUiL2KRL',
   '3AVi9Tg9Uo68tJfuvoKvqKNWKkC5wPdSSdeBnizKZ6jT',
 ].map(addr => new PublicKey(addr));
-
-// Bonding curve PDA seed
-export const PUMP_FUN_BONDING_CURVE_SEED = 'bonding-curve';
 
 // Lamports
 export const LAMPORTS_PER_SOL = 1_000_000_000;
