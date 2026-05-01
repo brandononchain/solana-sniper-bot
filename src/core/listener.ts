@@ -23,6 +23,14 @@ export interface PumpFunListenerConfig {
   fastMode?: boolean;
 }
 
+function toHttpEndpoint(endpoint: string): string {
+  return endpoint.replace(/^wss:\/\//, 'https://').replace(/^ws:\/\//, 'http://');
+}
+
+function toWsEndpoint(endpoint: string): string {
+  return endpoint.replace(/^https:\/\//, 'wss://').replace(/^http:\/\//, 'ws://');
+}
+
 /**
  * Listens for new Pump.fun token creations in real-time.
  *
@@ -41,9 +49,11 @@ export class PumpFunListener extends EventEmitter {
 
   constructor(private config: PumpFunListenerConfig) {
     super();
-    this.connection = new Connection(config.wsEndpoint, {
+    const rpcEndpoint = toHttpEndpoint(config.wsEndpoint);
+    const wsEndpoint = toWsEndpoint(config.wsEndpoint);
+    this.connection = new Connection(rpcEndpoint, {
       commitment: config.commitment || 'processed',
-      wsEndpoint: config.wsEndpoint.replace('https://', 'wss://').replace('http://', 'ws://'),
+      wsEndpoint,
     });
     this.apiClient = new PumpFunApiClient({ rapidApiKey: config.rapidApiKey });
   }
