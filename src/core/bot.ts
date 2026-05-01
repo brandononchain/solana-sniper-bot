@@ -6,6 +6,7 @@ import { initializeDatabase, getOpenPositions, getTodayStats, updateDailyStat } 
 import { WalletManager } from '../wallet/manager.js';
 import { PumpFunListener, type NewTokenEvent } from './listener.js';
 import { TradeExecutor, type TradeResult } from './executor.js';
+import { PaperTrader } from './simulator.js';
 import { RiskManager, type PositionAction } from './risk-manager.js';
 import { ScamFilter, type TokenMetadata } from '../filters/scam-filter.js';
 import { TokenAnalyzer, type AnalysisResult } from '../ai/analyzer.js';
@@ -16,8 +17,10 @@ import type { Database } from 'better-sqlite3';
 export interface BotStatus {
   isRunning: boolean;
   mode: string;
+  paperMode: boolean;
   activeWallet?: string;
   balance?: number;
+  portfolioValue?: number;
   openPositions: number;
   todayTrades: number;
   todayPnl: number;
@@ -33,6 +36,11 @@ export interface BotEvents {
   'error': (error: Error) => void;
 }
 
+export interface SniperBotOptions {
+  paper?: boolean;
+  paperStartingBalanceSol?: number;
+}
+
 /**
  * Main Sniper Bot orchestrator
  */
@@ -46,36 +54,29 @@ export class SniperBot extends EventEmitter {
   private riskManager: RiskManager;
   private scamFilter: ScamFilter;
   private analyzer: TokenAnalyzer;
+  private paperTrader?: PaperTrader;
 
   private isRunning = false;
   private positionCheckInterval?: NodeJS.Timeout;
   private tokensAnalyzed = 0;
   private tokensBought = 0;
 
-  constructor(config: Config, dbPath = 'data/bot.db') {
+  constructor(config: Config, dbPath = 'data/bot.db', options: SniperBotOptions = {}) {
     super();
     this.config = config;
-
-    // Initialize database
     this.db = initializeDatabase(dbPath);
-
-    // Initialize connection
     this.connection = new Connection(config.rpc.primary, {
       commitment: 'confirmed',
       wsEndpoint: config.rpc.ws,
     });
 
-    // Initialize components
-    this.walletManager = new WalletManager(
-      this.connection,
-      this.db,
-      config.wallet.encryption_password
-    );
+    this.walletManager = new WalletManager(this.connection, this.db, config.wallet.encryption_password);
 
     this.listener = new PumpFunListener({
       wsEndpoint: config.rpc.ws || config.rpc.primary,
-      commitment: 'confirmed',
+      commitment: 'processed',
       rapidApiKey: config.pumpfun_api?.rapidapi_key,
+      fastMode: true,
     });
 
     this.executor = new TradeExecutor(this.connection, this.db, {
@@ -94,9 +95,10 @@ export class SniperBot extends EventEmitter {
       pauseAfterConsecutiveLosses: config.risk.pause_after_consecutive_losses,
       minBalanceSol: config.risk.min_balance_sol,
       trailingStopPct: config.trading.sell.trailing_stop_pct,
-      takeProfitTiers: config.trading.sell.take_profit_tiers.map(t => ({
+      takeProfitTiers: config.trading.sell.take_profit_tiers.map((t, index, arr) => ({
         multiplier: t.multiplier,
         sellPct: t.sellPct,
+        sellRemaining: index === arr.length - 1,
       })),
     });
 
@@ -123,36 +125,29 @@ export class SniperBot extends EventEmitter {
       },
     });
 
-    // Set up event handlers
+    if (options.paper) {
+      this.paperTrader = new PaperTrader(options.paperStartingBalanceSol || 1, this.db);
+      logger.warn('📝 PAPER MODE ENABLED - no live transactions will be submitted');
+    }
+
     this.setupEventHandlers();
   }
 
-  /**
-   * Set up internal event handlers
-   */
   private setupEventHandlers(): void {
-    // Handle new tokens from listener
     this.listener.on('newToken', async (event: NewTokenEvent) => {
       if (!this.isRunning || !this.config.bot.enabled) return;
       await this.handleNewToken(event);
     });
 
-    // Handle listener errors
     this.listener.on('error', (err: Error) => {
       logger.error('Listener error', { error: err.message });
       this.emit('error', err);
     });
   }
 
-  /**
-   * Initialize the bot (create/load wallets)
-   */
   async initialize(): Promise<void> {
-    // Try to load existing master seed
     const loaded = await this.walletManager.loadMasterSeed();
-    
     if (!loaded) {
-      // First run - generate new mnemonic
       const mnemonic = await this.walletManager.initialize();
       logger.info('🔑 New wallet seed generated. BACK THIS UP:');
       console.log('\n' + '='.repeat(60));
@@ -161,16 +156,16 @@ export class SniperBot extends EventEmitter {
       console.log('='.repeat(60) + '\n');
     }
 
-    // Ensure we have at least one wallet
     const wallets = this.walletManager.getAllWallets();
     if (wallets.length === 0) {
       const wallet = await this.walletManager.createBurnerWallet('default');
       await this.walletManager.setActiveWallet(wallet.id);
       logger.info(`Created default wallet: ${wallet.publicKey}`);
-      console.log('\n📬 Send SOL to this address to start trading:');
-      console.log(wallet.publicKey + '\n');
+      if (!this.paperTrader) {
+        console.log('\n📬 Send SOL to this address to start trading:');
+        console.log(wallet.publicKey + '\n');
+      }
     } else {
-      // Use existing active wallet or first wallet
       const active = wallets.find(w => w.isActive) || wallets[0];
       await this.walletManager.setActiveWallet(active.id);
     }
@@ -178,33 +173,27 @@ export class SniperBot extends EventEmitter {
     logger.info('Bot initialized');
   }
 
-  /**
-   * Start the bot
-   */
   async start(): Promise<void> {
     if (this.isRunning) {
       logger.warn('Bot already running');
       return;
     }
 
-    // Check balance
-    const balance = await this.walletManager.getActiveBalance();
-    if (balance.sol < this.config.risk.min_balance_sol) {
-      const wallet = this.walletManager.getActiveWallet();
-      logger.warn(`Insufficient balance: ${balance.sol.toFixed(4)} SOL`);
-      console.log(`\n⚠️  Need at least ${this.config.risk.min_balance_sol} SOL to trade.`);
-      console.log(`Send SOL to: ${wallet?.publicKey}\n`);
+    if (!this.paperTrader) {
+      const balance = await this.walletManager.getActiveBalance();
+      if (balance.sol < this.config.risk.min_balance_sol) {
+        const wallet = this.walletManager.getActiveWallet();
+        logger.warn(`Insufficient balance: ${balance.sol.toFixed(4)} SOL`);
+        console.log(`\n⚠️  Need at least ${this.config.risk.min_balance_sol} SOL to trade.`);
+        console.log(`Send SOL to: ${wallet?.publicKey}\n`);
+      }
     }
 
     this.isRunning = true;
-
-    // Start listener
     await this.listener.start();
-
-    // Start position monitoring
     this.startPositionMonitoring();
 
-    logger.info('🚀 Sniper bot started', {
+    logger.info(this.paperTrader ? '📝 Paper sniper bot started' : '🚀 Sniper bot started', {
       mode: this.config.bot.mode,
       wallet: this.walletManager.getActiveWallet()?.publicKey.slice(0, 8),
     });
@@ -212,31 +201,20 @@ export class SniperBot extends EventEmitter {
     this.emit('status', await this.getStatus());
   }
 
-  /**
-   * Stop the bot
-   */
   async stop(): Promise<void> {
     this.isRunning = false;
-
-    // Stop listener
     await this.listener.stop();
-
-    // Stop position monitoring
     if (this.positionCheckInterval) {
       clearInterval(this.positionCheckInterval);
       this.positionCheckInterval = undefined;
     }
-
+    this.paperTrader?.printStats();
     logger.info('Bot stopped');
     this.emit('status', await this.getStatus());
   }
 
-  /**
-   * Handle a new token event
-   */
   private async handleNewToken(event: NewTokenEvent): Promise<void> {
     this.tokensAnalyzed++;
-
     const token: TokenMetadata = {
       mint: event.mint,
       name: event.name,
@@ -245,7 +223,6 @@ export class SniperBot extends EventEmitter {
       creator: event.creator,
     };
 
-    // Quick pre-filter
     const quickCheck = this.scamFilter.quickFilter(token);
     if (!quickCheck.passed) {
       logger.trade('SKIP', token.symbol, quickCheck.reason || 'Failed quick filter');
@@ -253,22 +230,17 @@ export class SniperBot extends EventEmitter {
       return;
     }
 
-    // Full scam analysis
     const filterResult = await this.scamFilter.analyzeToken(token);
     if (!filterResult.passed) {
       logger.trade('SKIP', token.symbol, filterResult.reasons.join(', '));
       updateDailyStat(this.db, 'tokensSkipped', 1);
-      if (filterResult.reasons.some(r => r.includes('rug') || r.includes('honeypot'))) {
-        updateDailyStat(this.db, 'rugsAvoided', 1);
-      }
+      if (filterResult.reasons.some(r => r.includes('rug') || r.includes('honeypot'))) updateDailyStat(this.db, 'rugsAvoided', 1);
       return;
     }
 
-    // AI analysis
     const analysis = await this.analyzer.analyze(token, filterResult);
     this.emit('newToken', event, analysis);
 
-    // Check if we should buy
     if (analysis.recommendation !== 'BUY') {
       logger.trade('SKIP', token.symbol, `Score: ${analysis.score} (min: ${this.config.trading.buy.min_score})`);
       updateDailyStat(this.db, 'tokensSkipped', 1);
@@ -281,53 +253,40 @@ export class SniperBot extends EventEmitter {
       return;
     }
 
-    // Risk check
-    const balance = await this.walletManager.getActiveBalance();
-    const riskCheck = this.riskManager.canTrade(
-      this.config.trading.buy.amount_sol,
-      balance.sol
-    );
-
+    const balanceSol = this.paperTrader ? this.paperTrader.getBalance() : (await this.walletManager.getActiveBalance()).sol;
+    const riskCheck = this.riskManager.canTrade(this.config.trading.buy.amount_sol, balanceSol);
     if (!riskCheck.allowed) {
       logger.trade('SKIP', token.symbol, riskCheck.reason || 'Risk check failed');
       return;
     }
 
     const amountSol = riskCheck.suggestedAmount || this.config.trading.buy.amount_sol;
-
-    // Execute buy
     await this.executeBuy(event, analysis, amountSol);
   }
 
-  /**
-   * Execute a buy order
-   */
-  private async executeBuy(
-    event: NewTokenEvent,
-    analysis: AnalysisResult,
-    amountSol: number
-  ): Promise<void> {
-    const keypair = this.walletManager.getActiveKeypair();
+  private async executeBuy(event: NewTokenEvent, analysis: AnalysisResult, amountSol: number): Promise<void> {
     const wallet = this.walletManager.getActiveWallet()!;
 
     logger.info(`🎯 Sniping ${event.symbol} (score: ${analysis.score})`, {
       amount: amountSol,
       reasons: analysis.reasons.slice(0, 2),
+      paper: !!this.paperTrader,
     });
 
-    const result = await this.executor.buy(keypair, {
-      mint: event.mint,
-      bondingCurve: event.bondingCurve,
-      amountSol,
-      slippageBps: this.config.trading.buy.max_slippage_bps,
-    });
+    const result = this.paperTrader
+      ? await this.executePaperBuy(event, amountSol)
+      : await this.executor.buy(this.walletManager.getActiveKeypair(), {
+          mint: event.mint,
+          bondingCurve: event.bondingCurve,
+          amountSol,
+          slippageBps: this.config.trading.buy.max_slippage_bps,
+        });
 
     if (result.success) {
       this.tokensBought++;
       updateDailyStat(this.db, 'tokensSniped', 1);
       updateDailyStat(this.db, 'totalVolumeSol', amountSol);
 
-      // Create position with bonding curve for price tracking
       this.db.prepare(`
         INSERT INTO positions (
           id, wallet_id, token_mint, token_name, token_symbol, bonding_curve,
@@ -335,20 +294,9 @@ export class SniperBot extends EventEmitter {
           cost_basis_sol, stop_loss_pct, take_profit_tiers
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).run(
-        nanoid(),
-        wallet.id,
-        event.mint,
-        event.name,
-        event.symbol,
-        event.bondingCurve,
-        result.price,
-        result.signature,
-        result.price,
-        result.amountOut,
-        result.amountOut,
-        amountSol,
-        this.config.trading.sell.trailing_stop_pct,
-        JSON.stringify(this.config.trading.sell.take_profit_tiers)
+        nanoid(), wallet.id, event.mint, event.name, event.symbol, event.bondingCurve,
+        result.price, result.signature, result.price, result.amountOut, result.amountOut,
+        amountSol, this.config.trading.sell.trailing_stop_pct, JSON.stringify(this.config.trading.sell.take_profit_tiers)
       );
 
       this.emit('trade', 'buy', { ...result, token: event.symbol });
@@ -358,9 +306,14 @@ export class SniperBot extends EventEmitter {
     }
   }
 
-  /**
-   * Start monitoring positions for exit conditions
-   */
+  private async executePaperBuy(event: NewTokenEvent, amountSol: number): Promise<TradeResult> {
+    const price = await this.executor.getPrice(event.bondingCurve, event.mint);
+    if (!price) return { success: false, error: 'No bonding curve price available for paper buy', amountIn: amountSol, amountOut: 0, price: 0 };
+    const sim = this.paperTrader!.buy(event.mint, event.symbol, amountSol, price);
+    if (!sim.success || !sim.tokensReceived) return { success: false, error: sim.error || 'Paper buy failed', amountIn: amountSol, amountOut: 0, price };
+    return { success: true, signature: `paper-${nanoid()}`, amountIn: amountSol, amountOut: sim.tokensReceived, price };
+  }
+
   private startPositionMonitoring(): void {
     this.positionCheckInterval = setInterval(async () => {
       if (!this.isRunning) return;
@@ -368,123 +321,88 @@ export class SniperBot extends EventEmitter {
     }, POSITION_CHECK_INTERVAL_MS);
   }
 
-  /**
-   * Check all positions for exit conditions
-   */
   private async checkPositions(): Promise<void> {
     const positions = getOpenPositions(this.db);
-    
     for (const position of positions) {
       try {
-        // Derive bonding curve from stored value or from mint
-        const bondingCurve = position.bondingCurve ||
-          TradeExecutor.deriveBondingCurve(new PublicKey(position.tokenMint)).toBase58();
+        const bondingCurve = position.bondingCurve || TradeExecutor.deriveBondingCurve(new PublicKey(position.tokenMint)).toBase58();
+        const complete = await this.executor.isBondingCurveComplete(bondingCurve);
+        if (complete) {
+          logger.warn('Bonding curve migrated; PumpSwap sell path required before automated exit', {
+            token: position.tokenSymbol || position.tokenMint,
+          });
+          continue;
+        }
 
-        // Get current price from bonding curve state
-        const currentPrice = await this.executor.getPrice(
-          bondingCurve,
-          position.tokenMint
-        );
+        const currentPrice = await this.executor.getPrice(bondingCurve, position.tokenMint);
+        if (currentPrice === 0) continue;
+        this.paperTrader?.updatePrice(position.tokenMint, currentPrice);
 
-        if (currentPrice === 0) continue; // Skip if price unavailable
-
-        // Update position price
         this.db.prepare(`
-          UPDATE positions SET 
-            current_price = ?,
-            highest_price = MAX(highest_price, ?),
-            last_updated = datetime('now')
+          UPDATE positions SET current_price = ?, highest_price = MAX(highest_price, ?), last_updated = datetime('now')
           WHERE id = ?
         `).run(currentPrice, currentPrice, position.id);
 
-        // Check risk manager
-        const action = this.riskManager.checkPosition(position, currentPrice);
+        const refreshedPosition = { ...position, currentPrice, highestPrice: Math.max(position.highestPrice || position.entryPrice, currentPrice) };
+        const action = this.riskManager.checkPosition(refreshedPosition, currentPrice);
         const pnlPct = ((currentPrice - position.entryPrice) / position.entryPrice) * 100;
 
-        this.emit('position', {
-          ...action,
-          token: position.tokenSymbol || position.tokenMint.slice(0, 8),
-          pnlPct,
-        });
-
-        if (action.action !== 'HOLD') {
-          await this.executePositionAction(position, action, currentPrice);
-        }
+        this.emit('position', { ...action, token: position.tokenSymbol || position.tokenMint.slice(0, 8), pnlPct });
+        if (action.action !== 'HOLD') await this.executePositionAction(position, action, currentPrice);
       } catch (err) {
-        logger.debug('Position check error', { 
-          position: position.id, 
-          error: String(err) 
-        });
+        logger.debug('Position check error', { position: position.id, error: String(err) });
       }
     }
   }
 
-  /**
-   * Execute a position action (sell partial/all)
-   */
-  private async executePositionAction(
-    position: any,
-    action: PositionAction,
-    currentPrice: number
-  ): Promise<void> {
-    const keypair = this.walletManager.getActiveKeypair();
+  private async executePositionAction(position: any, action: PositionAction, currentPrice: number): Promise<void> {
     const sellPct = action.sellPct || 100;
-    const tokensToSell = position.remainingTokens * (sellPct / 100);
+    const tokensToSell = action.sellTokens ?? position.remainingTokens * (sellPct / 100);
+    const sellPctOfPosition = position.remainingTokens > 0 ? Math.min(100, (tokensToSell / position.remainingTokens) * 100) : 100;
 
-    logger.position(
-      position.tokenSymbol || position.tokenMint.slice(0, 8),
-      ((currentPrice - position.entryPrice) / position.entryPrice) * 100,
-      action.reason
-    );
+    logger.position(position.tokenSymbol || position.tokenMint.slice(0, 8), ((currentPrice - position.entryPrice) / position.entryPrice) * 100, action.reason);
 
-    // Derive bonding curve from stored value or from mint PDA
-    const bondingCurve = position.bondingCurve ||
-      TradeExecutor.deriveBondingCurve(
-        new (await import('@solana/web3.js')).PublicKey(position.tokenMint)
-      ).toBase58();
-
-    const result = await this.executor.sell(keypair, {
-      mint: position.tokenMint,
-      bondingCurve,
-      amountTokens: tokensToSell,
-    });
+    const bondingCurve = position.bondingCurve || TradeExecutor.deriveBondingCurve(new PublicKey(position.tokenMint)).toBase58();
+    const result = this.paperTrader
+      ? this.executePaperSell(position, sellPctOfPosition)
+      : await this.executor.sell(this.walletManager.getActiveKeypair(), { mint: position.tokenMint, bondingCurve, amountTokens: tokensToSell });
 
     if (result.success) {
-      const pnlSol = result.amountOut - (position.costBasisSol * (sellPct / 100));
-      
-      // Update position
-      if (sellPct >= 100) {
-        // Close position
+      const costBasisSold = position.costBasisSol * (tokensToSell / position.amountTokens);
+      const pnlSol = result.amountOut - costBasisSold;
+
+      if (sellPctOfPosition >= 99.999 || action.action === 'SELL_ALL' || action.action === 'STOP_LOSS') {
         this.db.prepare(`DELETE FROM positions WHERE id = ?`).run(position.id);
         this.riskManager.clearTierTracking(position.id);
       } else {
-        // Update remaining
         this.db.prepare(`
-          UPDATE positions SET 
-            remaining_tokens = remaining_tokens - ?,
-            realized_pnl_sol = realized_pnl_sol + ?
+          UPDATE positions SET remaining_tokens = remaining_tokens - ?, realized_pnl_sol = realized_pnl_sol + ?
           WHERE id = ?
         `).run(tokensToSell, pnlSol, position.id);
       }
 
-      // Record result
       this.riskManager.recordTradeResult(pnlSol > 0, pnlSol);
       this.walletManager.updatePnl(position.walletId, pnlSol);
       updateDailyStat(this.db, 'totalVolumeSol', result.amountOut);
-
-      this.emit('trade', 'sell', { 
-        ...result, 
-        token: position.tokenSymbol || position.tokenMint.slice(0, 8) 
-      });
+      this.emit('trade', 'sell', { ...result, token: position.tokenSymbol || position.tokenMint.slice(0, 8) });
     }
   }
 
-  /**
-   * Get current bot status
-   */
+  private executePaperSell(position: any, sellPctOfRemaining: number): TradeResult {
+    const sim = this.paperTrader!.sell(position.tokenMint, sellPctOfRemaining);
+    if (!sim.success) return { success: false, error: sim.error || 'Paper sell failed', amountIn: position.remainingTokens, amountOut: 0, price: position.currentPrice || 0 };
+    return {
+      success: true,
+      signature: `paper-${nanoid()}`,
+      amountIn: position.remainingTokens * (sellPctOfRemaining / 100),
+      amountOut: sim.solReceived || 0,
+      price: position.currentPrice || 0,
+    };
+  }
+
   async getStatus(): Promise<BotStatus> {
     const wallet = this.walletManager.getActiveWallet();
-    const balance = wallet ? await this.walletManager.getBalance(wallet.publicKey) : null;
+    const liveBalance = wallet && !this.paperTrader ? await this.walletManager.getBalance(wallet.publicKey) : null;
     const positions = getOpenPositions(this.db);
     const riskStatus = this.riskManager.getStatus();
     const todayStats = getTodayStats(this.db);
@@ -492,8 +410,10 @@ export class SniperBot extends EventEmitter {
     return {
       isRunning: this.isRunning,
       mode: this.config.bot.mode,
+      paperMode: !!this.paperTrader,
       activeWallet: wallet?.publicKey,
-      balance: balance?.sol,
+      balance: this.paperTrader ? this.paperTrader.getBalance() : liveBalance?.sol,
+      portfolioValue: this.paperTrader ? this.paperTrader.getPortfolioValue() : undefined,
       openPositions: positions.length,
       todayTrades: todayStats.totalTrades,
       todayPnl: riskStatus.dailyPnl,
@@ -502,43 +422,21 @@ export class SniperBot extends EventEmitter {
     };
   }
 
-  /**
-   * Get wallet manager instance
-   */
-  getWalletManager(): WalletManager {
-    return this.walletManager;
-  }
+  getWalletManager(): WalletManager { return this.walletManager; }
+  getRiskManager(): RiskManager { return this.riskManager; }
 
-  /**
-   * Get risk manager instance
-   */
-  getRiskManager(): RiskManager {
-    return this.riskManager;
-  }
-
-  /**
-   * Pause trading
-   */
-  pause(): void {
+  async pause(): Promise<void> {
     this.riskManager.pause();
-    this.emit('status', this.getStatus());
+    this.emit('status', await this.getStatus());
   }
 
-  /**
-   * Resume trading
-   */
-  resume(): void {
+  async resume(): Promise<void> {
     this.riskManager.resume();
-    this.emit('status', this.getStatus());
+    this.emit('status', await this.getStatus());
   }
 
-  /**
-   * Update configuration
-   */
   updateConfig(updates: Partial<Config>): void {
     Object.assign(this.config, updates);
-    
-    // Update risk manager config
     if (updates.risk) {
       this.riskManager.updateConfig({
         maxPositions: updates.risk.max_positions,
@@ -548,31 +446,20 @@ export class SniperBot extends EventEmitter {
         minBalanceSol: updates.risk.min_balance_sol,
       });
     }
-
     logger.info('Configuration updated');
   }
 
-  /**
-   * Close all positions immediately
-   */
   async closeAllPositions(): Promise<void> {
     const positions = getOpenPositions(this.db);
-    const keypair = this.walletManager.getActiveKeypair();
-
     logger.warn(`🚨 Closing all ${positions.length} positions`);
-
     for (const position of positions) {
-      const bondingCurve = position.bondingCurve ||
-        TradeExecutor.deriveBondingCurve(new PublicKey(position.tokenMint)).toBase58();
-
-      await this.executor.sell(keypair, {
-        mint: position.tokenMint,
-        bondingCurve,
-        amountTokens: position.remainingTokens,
-      });
+      const bondingCurve = position.bondingCurve || TradeExecutor.deriveBondingCurve(new PublicKey(position.tokenMint)).toBase58();
+      if (this.paperTrader) {
+        this.paperTrader.sell(position.tokenMint, 100);
+      } else {
+        await this.executor.sell(this.walletManager.getActiveKeypair(), { mint: position.tokenMint, bondingCurve, amountTokens: position.remainingTokens });
+      }
     }
-
-    // Clear all positions from DB
     this.db.prepare(`DELETE FROM positions`).run();
     logger.info('All positions closed');
   }
