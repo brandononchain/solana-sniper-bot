@@ -1,7 +1,14 @@
 import Database from 'better-sqlite3';
+import { dirname } from 'path';
+import { existsSync, mkdirSync } from 'fs';
 import { logger } from '../utils/logger.js';
 
 export function initializeDatabase(dbPath: string): Database.Database {
+  const dbDir = dirname(dbPath);
+  if (dbDir && dbDir !== '.' && !existsSync(dbDir)) {
+    mkdirSync(dbDir, { recursive: true });
+  }
+
   const db = new Database(dbPath);
   
   // Enable WAL mode for better performance
